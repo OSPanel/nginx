@@ -51,6 +51,12 @@ git clone --branch master --depth=1 --recursive https://github.com/aperezdc/ngx-
 git clone --branch master --depth=1 --recursive https://github.com/leev/ngx_http_geoip2_module.git nginx_http_geoip2_module
 git clone --branch master --depth=1 --recursive https://github.com/arut/nginx-rtmp-module nginx_rtmp_module
 
+# Патч для совместимости ngx_rtmp.h с MinGW
+sed -i 's/^typedef __int8 *int8_t;//' nginx_rtmp_module/ngx_rtmp.h
+sed -i 's/^#pragma warning(push)/\/\/&/' nginx_rtmp_module/ngx_rtmp.h
+sed -i 's/^#pragma warning(disable:4200)/\/\/&/' nginx_rtmp_module/ngx_rtmp.h
+sed -i 's/^#pragma warning(pop)/\/\/&/' nginx_rtmp_module/ngx_rtmp.h
+
 # Патчим geoip2: заменяем во всех файлах нужную строку
 find nginx_http_geoip2_module -type f -exec sed -i \
     's/ngx_file_info(database->mmdb.filename/ngx_file_info((u_char *) database->mmdb.filename/g' {} +
