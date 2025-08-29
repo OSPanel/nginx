@@ -4,24 +4,22 @@ Highlights:
 
 - Source: Original Nginx sources
 - Extra modules:
-  - http_realip_module
   - http_addition_module
-  - http_sub_module
+  - http_auth_request_module
   - http_dav_module
-  - http_stub_status_module
   - http_flv_module
-  - http_mp4_module
+  - http_geoip_module
   - http_gunzip_module
   - http_gzip_static_module
-  - http_auth_request_module
   - http_image_filter_module
+  - http_mp4_module
   - http_random_index_module
+  - http_realip_module
   - http_secure_link_module
   - http_slice_module
-  - stream_realip_module
-  - poll_module
-  - http_geoip_module
-  - stream_geoip_module
   - nginx_brotli_module
-  - nginx_http_geoip2_module
   - nginx_fancyindex
+  - nginx_http_geoip2_module
+  - poll_module
+  - stream_geoip_module
+  - stream_realip_module
