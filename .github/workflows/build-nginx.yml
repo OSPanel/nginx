@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     defaults:
       run:
@@ -136,7 +136,7 @@ jobs:
             PKG_NAME="nginx-bin.7z"
           fi
 
-          echo "PKG_NAME=${VER}" >> $GITHUB_ENV
+          echo "PKG_NAME=${PKG_NAME}" >> $GITHUB_ENV
 
       - name: Package nginx
         run: |
