@@ -72,13 +72,15 @@ jobs:
             mingw-w64-x86_64-geoip
             mingw-w64-x86_64-libmaxminddb
 
-      - name: Prepare environment
+      - name: Prepare Git identity (anonymous)
         run: |
           NAME="${{ github.actor }}"
           EMAIL="${{ github.actor }}@users.noreply.github.com"
           echo "BUILD_USER_NAME=$NAME"  >> $GITHUB_ENV
           echo "BUILD_USER_EMAIL=$EMAIL" >> $GITHUB_ENV
 
+      - name: Normalize TAG input
+        run: |
           RAW="${{ github.event.inputs.TAG }}"
           if [ -z "$RAW" ] || [ "$RAW" = "latest" ]; then
             echo "TAG=" >> $GITHUB_ENV
@@ -93,15 +95,16 @@ jobs:
           make --version
           perl --version
 
-      - name: Build and package nginx
+      - name: Build nginx (Release + Debug)
         env:
           TAG: ${{ env.TAG }}
           BUILD_USER_NAME: ${{ env.BUILD_USER_NAME }}
           BUILD_USER_EMAIL: ${{ env.BUILD_USER_EMAIL }}
         run: |
-          set -euo pipefail
-          mkdir -p Release Release/docs Release/temp Release/logs
+          chmod +x ./build.sh
+          ./build.sh
 
+<<<<<<< HEAD
           ############################
           # === ФУНКЦИИ ===
           ############################
@@ -176,9 +179,22 @@ jobs:
             git clone --depth=1 https://github.com/nginx/nginx.git
           else
             git clone --depth=1 --branch "$TAG" https://github.com/nginx/nginx.git
+=======
+      - name: Resolve package name
+        id: pkgname
+        run: |
+          # Попытка извлечь версию из входного TAG
+          RAW="${{ env.TAG }}"
+          VER=""
+          if [ -n "$RAW" ]; then
+            # Поддерживаем форматы: 1.28, 1.28.0, v1.28.0, release-1.28.0
+            if echo "$RAW" | grep -Eiq '^[a-z-]*v?[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
+              VER="$(echo "$RAW" | sed -E 's/^[^0-9]*v?([0-9]+\.[0-9]+(\.[0-9]+)?)$/\1/i')"
+            fi
+>>>>>>> parent of a73d338 (Update)
           fi
-          cd nginx
 
+<<<<<<< HEAD
           git checkout -b patch || git checkout patch
           mkdir -p docs
           git am -3 ../nginx-*.patch || true
@@ -246,21 +262,45 @@ jobs:
           pushd Release >/dev/null
           7z a -mx9 "$PKG_NAME" nginx-*.exe *.dll contrib docs conf html temp logs || true
           popd >/dev/null
-          echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
+=======
+          # Если TAG не дал версию — читаем, что записал build-скрипт
+          if [ -z "$VER" ] && [ -f "Release/.env" ]; then
+            set -a; . Release/.env; set +a
+            VER="${NGINX_VERSION:-}"
+          fi
 
-      - name: Upload executables
+          # Финальное имя пакета
+          if [ -n "$VER" ]; then
+            PKG_NAME="nginx-${VER}.7z"
+          else
+            PKG_NAME="nginx-bin.7z"
+          fi
+
+>>>>>>> parent of a73d338 (Update)
+          echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
+          echo "pkg_name=$PKG_NAME" >> $GITHUB_OUTPUT
+          echo "Resolved package name: $PKG_NAME"
+
+      - name: Package nginx
+        env:
+          PKG_NAME: ${{ env.PKG_NAME }}
+        run: |
+          chmod +x ./nginx-package-msys2.sh
+          PKG_NAME="${PKG_NAME}" ./package.sh
+
+      - name: Upload artifacts (executables)
         uses: actions/upload-artifact@v4
         with:
           name: nginx-executables
           path: Release/*.exe
 
-      - name: Upload package
+      - name: Upload artifacts (package)
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.PKG_NAME }}
-          path: Release/${{ env.PKG_NAME }}
+          name: ${{ steps.pkgname.outputs.pkg_name }}
+          path: Release/${{ steps.pkgname.outputs.pkg_name }}
 
-      - name: Upload docs/configs
+      - name: Upload docs and configs (optional)
         uses: actions/upload-artifact@v4
         with:
           name: nginx-extra
