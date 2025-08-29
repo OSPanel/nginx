@@ -73,10 +73,4 @@ fi
 
 PKG_NAME="${PKG_NAME:-nginx-bin.7z}"
 
-pushd "${TARGET_DIR}" >/dev/null
-7z a -mx9 "$PKG_NAME" nginx*.exe *.dll contrib docs conf html temp logs || {
-  warn "Архивация завершилась с предупреждением или не все файлы найдены"
-}
-popd >/dev/null
-
 log "Готово. Пакет: ${TARGET_DIR}/${PKG_NAME}"
