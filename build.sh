@@ -52,7 +52,7 @@ git clone --branch master --depth=1 --recursive https://github.com/leev/ngx_http
 
 # Патчим geoip2: заменяем во всех файлах нужную строку
 find nginx_http_geoip2_module -type f -exec sed -i \
-    's/if (ngx_file_info(database->mmdb.filename, &fi) == NGX_FILE_ERROR) {/if (ngx_file_info((u_char *) database->mmdb.filename, &fi) == NGX_FILE_ERROR) {/' {} +
+    's/ngx_file_info(database->mmdb.filename/ngx_file_info((u_char *) database->mmdb.filename/g' {} +
 
 # === Получение версий зависимостей ===
 ZLIB="$(fetch_latest_version 'https://zlib.net/' 'zlib-(\d+\.)+\d+' 'zlib-1.3.1')"
