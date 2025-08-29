@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       TAG:
-        description: 'Введите git tag/branch nginx (например: release-1.28.0, 1.28.0, main). Оставьте пустым или "latest" для последнего.'
+        description: 'Введите git tag/branch nginx (например: 1.28.0, 1.28.0):'
         required: false
         default: ''
         type: string
@@ -87,7 +87,7 @@ jobs:
 
       - name: Normalize TAG input
         run: |
-          RAW="${{ github.event.inputs.TAG }}"
+          RAW="release-${{ github.event.inputs.TAG }}"
           if [ -z "$RAW" ] || [ "$RAW" = "latest" ]; then
             echo "TAG=" >> $GITHUB_ENV
           else
@@ -147,7 +147,7 @@ jobs:
         id: gen_tag
         shell: pwsh
         run: |
-          echo "tag=${PKG_NAME}" >> $env:GITHUB_OUTPUT
+          echo "tag=${{ env.TAG }}" >> $env:GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
