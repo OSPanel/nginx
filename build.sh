@@ -7,8 +7,6 @@ BUILD_USER_NAME="Build Bot"
 BUILD_USER_EMAIL="nobody@example.com"
 RELEASE_DIR="../Release"
 DOCS_DIR="${RELEASE_DIR}/docs"
-OPENSSL_ia32cap=~0:~0x202020
-export OPENSSL_ia32cap=~0:~0x202020
 
 # === Утилиты ===
 log() {
