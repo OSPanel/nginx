@@ -144,24 +144,8 @@ jobs:
           chmod +x ./package.sh
           PKG_NAME="${PKG_NAME}" ./package.sh
 
-      - name: Upload artifacts (executables)
-        uses: actions/upload-artifact@v4
-        with:
-          name: nginx-executables
-          path: Release/*.exe
-
       - name: Upload artifacts (package)
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.pkgname.outputs.pkg_name }}
           path: Release/${{ steps.pkgname.outputs.pkg_name }}
-
-      - name: Upload docs and configs (optional)
-        uses: actions/upload-artifact@v4
-        with:
-          name: nginx-extra
-          path: |
-            Release/docs/**
-            Release/conf/**
-            Release/html/**
-            Release/contrib/**
