@@ -248,7 +248,7 @@ jobs:
           popd >/dev/null
           echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
 
-     - name: Upload executables
+      - name: Upload executables
         uses: actions/upload-artifact@v4
         with:
           name: nginx-executables
