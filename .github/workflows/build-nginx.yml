@@ -72,15 +72,13 @@ jobs:
             mingw-w64-x86_64-geoip
             mingw-w64-x86_64-libmaxminddb
 
-      - name: Prepare Git identity (anonymous)
+      - name: Prepare environment
         run: |
           NAME="${{ github.actor }}"
           EMAIL="${{ github.actor }}@users.noreply.github.com"
           echo "BUILD_USER_NAME=$NAME"  >> $GITHUB_ENV
           echo "BUILD_USER_EMAIL=$EMAIL" >> $GITHUB_ENV
 
-      - name: Normalize TAG input
-        run: |
           RAW="${{ github.event.inputs.TAG }}"
           if [ -z "$RAW" ] || [ "$RAW" = "latest" ]; then
             echo "TAG=" >> $GITHUB_ENV
@@ -95,65 +93,141 @@ jobs:
           make --version
           perl --version
 
-      - name: Build nginx (Release + Debug)
+      - name: Build and package nginx
         env:
           TAG: ${{ env.TAG }}
           BUILD_USER_NAME: ${{ env.BUILD_USER_NAME }}
           BUILD_USER_EMAIL: ${{ env.BUILD_USER_EMAIL }}
         run: |
-          chmod +x ./build.sh
-          ./build.sh
+          set -euo pipefail
+          mkdir -p Release Release/docs Release/temp Release/logs
 
-      - name: Resolve package name
-        id: pkgname
-        run: |
-          # Попытка извлечь версию из входного TAG
-          RAW="${{ env.TAG }}"
-          VER=""
-          if [ -n "$RAW" ]; then
-            # Поддерживаем форматы: 1.28, 1.28.0, v1.28.0, release-1.28.0
-            if echo "$RAW" | grep -Eiq '^[a-z-]*v?[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
-              VER="$(echo "$RAW" | sed -E 's/^[^0-9]*v?([0-9]+\.[0-9]+(\.[0-9]+)?)$/\1/i')"
-            fi
-          fi
+          log() { echo -e "\033[1;32m[INFO]\033[0m $*"; }
+          warn() { echo -e "\033[1;33m[WARN]\033[0m $*" 1>&2; }
 
-          # Если TAG не дал версию — читаем, что записал build-скрипт
-          if [ -z "$VER" ] && [ -f "Release/.env" ]; then
-            set -a; . Release/.env; set +a
-            VER="${NGINX_VERSION:-}"
-          fi
+          # Настройка git
+          git config --global user.name "$BUILD_USER_NAME"
+          git config --global user.email "$BUILD_USER_EMAIL"
 
-          # Финальное имя пакета
-          if [ -n "$VER" ]; then
-            PKG_NAME="nginx-${VER}.7z"
+          # Получение зависимостей
+          fetch_latest_version() {
+            local url="$1" pattern="$2" fallback="$3"
+            curl -s "$url" | grep -ioP "$pattern" | sort -ruV | head -1 || echo "$fallback"
+          }
+
+          ZLIB="$(fetch_latest_version 'https://zlib.net/' 'zlib-(\\d+\\.)+\\d+' 'zlib-1.3.1')"
+          PCRE="$(fetch_latest_version 'https://sourceforge.net/projects/pcre/rss?path=/pcre/' 'pcre-(\\d+\\.)+\\d+' 'pcre-8.45')"
+          PCRE2="$(fetch_latest_version 'https://api.github.com/repos/PhilipHazel/pcre2/releases/latest' 'pcre2-(\\d+\\.)+\\d+' 'pcre2-10.45')"
+          OPENSSL="$(fetch_latest_version 'https://openssl-library.org/source/' 'openssl-3\\.5\\.\\d+' 'openssl-3.5.2')"
+
+          log "Zlib: $ZLIB"
+          log "PCRE: $PCRE"
+          log "PCRE2: $PCRE2"
+          log "OpenSSL: $OPENSSL"
+
+          # Клонирование nginx
+          if [ -d nginx ]; then rm -rf nginx; fi
+          if [ -z "$TAG" ]; then
+            git clone --depth=1 https://github.com/nginx/nginx.git
           else
-            PKG_NAME="nginx-bin.7z"
+            git clone --depth=1 --branch "$TAG" https://github.com/nginx/nginx.git
           fi
+          cd nginx
 
+          git checkout -b patch || git checkout patch
+          mkdir -p docs
+
+          git am -3 nginx-*.patch || true
+
+          # Сборка
+          configure_args=(
+            --sbin-path=nginx.exe
+            --conf-path=conf/nginx.conf
+            --pid-path=nginx.pid
+            --http-log-path=access.log
+            --error-log-path=error.log
+            --http-client-body-temp-path=temp/client_body
+            --http-proxy-temp-path=temp/proxy
+            --http-fastcgi-temp-path=temp/fastcgi
+            --http-scgi-temp-path=temp/scgi
+            --http-uwsgi-temp-path=temp/uwsgi
+            --with-http_realip_module
+            --with-http_addition_module
+            --with-http_sub_module
+            --with-http_dav_module
+            --with-http_stub_status_module
+            --with-http_flv_module
+            --with-http_mp4_module
+            --with-http_gunzip_module
+            --with-http_gzip_static_module
+            --with-http_auth_request_module
+            --with-http_image_filter_module
+            --with-http_random_index_module
+            --with-http_secure_link_module
+            --with-http_slice_module
+            --with-stream_realip_module
+            --with-mail
+            --with-stream
+            --with-poll_module
+            "--with-zlib=$ZLIB"
+            "--with-pcre=$PCRE"
+            --with-pcre-jit
+            --with-http_geoip_module
+            --with-stream_geoip_module
+            --with-ld-opt="-Wl,--gc-sections,--build-id=none"
+            --prefix=
+            --with-http_v2_module
+            "--with-openssl=$OPENSSL"
+            --with-http_ssl_module
+            --with-mail_ssl_module
+            --with-stream_ssl_module
+            --with-stream_ssl_preread_module
+          )
+
+          log "Конфигурация Release"
+          auto/configure "${configure_args[@]}" \
+            --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -pipe' \
+            --with-openssl-opt='-DFD_SETSIZE=32768 no-tests -D_WIN32_WINNT=0x0601'
+
+          make -j"$(nproc)"
+          strip -s objs/nginx.exe || true
+
+          version="$(grep NGINX_VERSION src/core/nginx.h | grep -oP '(\\d+\\.)+\\d+')"
+          machine_str="$(gcc -dumpmachine | cut -d'-' -f1)"
+          mv -f objs/nginx.exe "Release/nginx-${version}-${machine_str}.exe"
+          echo "NGINX_VERSION=${version}" > Release/.env
+
+          log "Конфигурация Debug"
+          configure_args+=(--with-debug)
+          auto/configure "${configure_args[@]}" \
+            --with-cc-opt='-DFD_SETSIZE=32768 -O2 -fno-strict-aliasing -pipe' \
+            --with-openssl-opt='-DFD_SETSIZE=32768 no-tests -D_WIN32_WINNT=0x0601'
+
+          make -j"$(nproc)"
+          mv -f objs/nginx.exe "Release/nginx-${version}-${machine_str}-debug.exe"
+
+          cd ..
+
+          # Архивация пакета
+          PKG_NAME="nginx-${version}.7z"
+          pushd Release >/dev/null
+          7z a -mx9 "$PKG_NAME" nginx-*.exe *.dll contrib docs conf html temp logs || true
+          popd >/dev/null
           echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
-          echo "pkg_name=$PKG_NAME" >> $GITHUB_OUTPUT
-          echo "Resolved package name: $PKG_NAME"
 
-      - name: Package nginx
-        env:
-          PKG_NAME: ${{ env.PKG_NAME }}
-        run: |
-          chmod +x ./nginx-package-msys2.sh
-          PKG_NAME="${PKG_NAME}" ./package.sh
-
-      - name: Upload artifacts (executables)
+      - name: Upload executables
         uses: actions/upload-artifact@v4
         with:
           name: nginx-executables
           path: Release/*.exe
 
-      - name: Upload artifacts (package)
+      - name: Upload package
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.pkgname.outputs.pkg_name }}
-          path: Release/${{ steps.pkgname.outputs.pkg_name }}
+          name: ${{ env.PKG_NAME }}
+          path: Release/${{ env.PKG_NAME }}
 
-      - name: Upload docs and configs (optional)
+      - name: Upload docs/configs
         uses: actions/upload-artifact@v4
         with:
           name: nginx-extra
