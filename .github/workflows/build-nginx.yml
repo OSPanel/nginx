@@ -4,9 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       TAG:
-        description: 'nginx git tag/branch (e.g. release-1.28.0). Leave empty for latest.'
+        description: 'Введите git tag/branch nginx (например: release-1.28.0, main). Оставьте пустым или "latest" для последнего.'
         required: false
         default: ''
+        type: string
   push:
     paths:
       - '.github/workflows/build-nginx.yml'
@@ -47,7 +48,6 @@ jobs:
             perl
             p7zip
             pkgconf
-            # Рантайм-зависимости, которые пакуем вместе с nginx (для image_filter/geoip и пр.)
             mingw-w64-x86_64-gd
             mingw-w64-x86_64-libheif
             mingw-w64-x86_64-libavif
@@ -78,6 +78,22 @@ jobs:
             mingw-w64-x86_64-geoip
             mingw-w64-x86_64-libmaxminddb
 
+      - name: Prepare Git identity (anonymous)
+        run: |
+          NAME="${{ github.actor }}"
+          EMAIL="${{ github.actor }}@users.noreply.github.com"
+          echo "BUILD_USER_NAME=$NAME"  >> $GITHUB_ENV
+          echo "BUILD_USER_EMAIL=$EMAIL" >> $GITHUB_ENV
+
+      - name: Normalize TAG input
+        run: |
+          RAW="${{ github.event.inputs.TAG }}"
+          if [ -z "$RAW" ] || [ "$RAW" = "latest" ]; then
+            echo "TAG=" >> $GITHUB_ENV
+          else
+            echo "TAG=$RAW" >> $GITHUB_ENV
+          fi
+
       - name: Show toolchain versions
         run: |
           gcc --version
@@ -86,13 +102,11 @@ jobs:
           perl --version
           7z
 
-      - name: Prepare environment
-        run: |
-          echo "TAG=${{ github.event.inputs.TAG }}" >> $GITHUB_ENV
-
       - name: Build nginx (Release + Debug)
         env:
-          TAG: ${{ github.event.inputs.TAG }}
+          TAG: ${{ env.TAG }}
+          BUILD_USER_NAME: ${{ env.BUILD_USER_NAME }}
+          BUILD_USER_EMAIL: ${{ env.BUILD_USER_EMAIL }}
         run: |
           chmod +x ./nginx-build-msys2-new.sh
           ./nginx-build-msys2-new.sh
@@ -106,8 +120,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nginx-executables
-          path: |
-            Release/*.exe
+          path: Release/*.exe
 
       - name: Upload artifacts (package)
         uses: actions/upload-artifact@v4
