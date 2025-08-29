@@ -124,6 +124,10 @@ configure_args=(
   --http-fastcgi-temp-path=temp/fastcgi
   --http-scgi-temp-path=temp/scgi
   --http-uwsgi-temp-path=temp/uwsgi
+  "--with-pcre=${WITH_PCRE}"
+  "--with-zlib=${ZLIB}"
+  --with-ld-opt="-Wl,--gc-sections,--build-id=none"
+  --prefix=
 )
 
 # === Первая сборка (Release) ===
