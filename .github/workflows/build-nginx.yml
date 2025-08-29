@@ -93,7 +93,6 @@ jobs:
           g++ --version
           make --version
           perl --version
-          7z
 
       - name: Build nginx (Release + Debug)
         env:
@@ -102,7 +101,7 @@ jobs:
           BUILD_USER_EMAIL: ${{ env.BUILD_USER_EMAIL }}
         run: |
           chmod +x ./build.sh
-          ./nginx-build-msys2-new.sh
+          ./build.sh
 
       - name: Resolve package name
         id: pkgname
