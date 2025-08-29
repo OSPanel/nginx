@@ -56,6 +56,7 @@ jobs:
             mingw-w64-x86_64-brotli
             mingw-w64-x86_64-libpng
             mingw-w64-x86_64-libtiff
+            mingw-w64-x86_64-libxslt
             mingw-w64-x86_64-openjpeg2
             mingw-w64-x86_64-openh264
             mingw-w64-x86_64-x265
