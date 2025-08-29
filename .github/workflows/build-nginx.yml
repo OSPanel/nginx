@@ -96,7 +96,6 @@ jobs:
           g++ --version
           make --version
           perl --version
-          7z
 
       - name: Build nginx (Release + Debug)
         env:
