@@ -8,12 +8,6 @@ on:
         required: false
         default: ''
         type: string
-  push:
-    paths:
-      - '.github/workflows/build-nginx.yml'
-      - 'nginx-build-msys2-new.sh'
-      - 'nginx-package-msys2.sh'
-      - 'nginx-*.patch'
 
 jobs:
   build:
@@ -107,7 +101,7 @@ jobs:
           BUILD_USER_NAME: ${{ env.BUILD_USER_NAME }}
           BUILD_USER_EMAIL: ${{ env.BUILD_USER_EMAIL }}
         run: |
-          chmod +x ./nginx-build-msys2-new.sh
+          chmod +x ./build.sh
           ./nginx-build-msys2-new.sh
 
       - name: Resolve package name
@@ -145,7 +139,7 @@ jobs:
           PKG_NAME: ${{ env.PKG_NAME }}
         run: |
           chmod +x ./nginx-package-msys2.sh
-          PKG_NAME="${PKG_NAME}" ./nginx-package-msys2.sh
+          PKG_NAME="${PKG_NAME}" ./package.sh
 
       - name: Upload artifacts (executables)
         uses: actions/upload-artifact@v4
