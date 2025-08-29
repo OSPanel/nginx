@@ -248,17 +248,24 @@ jobs:
           popd >/dev/null
           echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
 
-      - name: Upload executables
+     - name: Upload executables
         uses: actions/upload-artifact@v4
         with:
           name: nginx-executables
-          path: |
-            Release/*.exe
-            Release/docs/**
-            Release/conf/**
-            Release/html/**
-            Release/contrib/**      - name: Upload package
+          path: Release/*.exe
+
+      - name: Upload package
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PKG_NAME }}
-          path: Release/${{ env.PKG_NAME 
+          path: Release/${{ env.PKG_NAME }}
+
+      - name: Upload docs/configs
+        uses: actions/upload-artifact@v4
+        with:
+          name: nginx-extra
+          path: |
+            Release/docs/**
+            Release/conf/**
+            Release/html/**
+            Release/contrib/**
