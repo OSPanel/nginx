@@ -124,16 +124,47 @@ configure_args=(
   --http-fastcgi-temp-path=temp/fastcgi
   --http-scgi-temp-path=temp/scgi
   --http-uwsgi-temp-path=temp/uwsgi
+  --with-http_realip_module
+  --with-http_addition_module
+  --with-http_sub_module
+  --with-http_dav_module
+  --with-http_stub_status_module
+  --with-http_flv_module
+  --with-http_mp4_module
+  --with-http_gunzip_module
+  --with-http_gzip_static_module
+  --with-http_auth_request_module
+  --with-http_image_filter_module
+  --with-http_random_index_module
+  --with-http_secure_link_module
+  --with-http_slice_module
+  --with-stream_realip_module
+  --with-mail
+  --with-stream
+  --with-poll_module
   "--with-pcre=${WITH_PCRE}"
+  --with-pcre-jit
   "--with-zlib=${ZLIB}"
+  --with-http_geoip_module
+  --with-stream_geoip_module
+  --add-module=../nginx_brotli_module
+  --add-module=../nginx_http_geoip2_module
+  --add-module=../nginx_fancyindex
   --with-ld-opt="-Wl,--gc-sections,--build-id=none"
   --prefix=
+  --with-http_v2_module
+  "--with-openssl=${OPENSSL}"
+  --with-http_ssl_module
+  --with-mail_ssl_module
+  --with-stream_ssl_module
+  --with-stream_ssl_preread_module
 )
 
 # === Первая сборка (Release) ===
 log "Конфигурация сборки (Release)"
 auto/configure "${configure_args[@]}" \
-  --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -pipe'
+  --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -pipe' \
+  --with-openssl-opt='-DFD_SETSIZE=32768 no-tests -D_WIN32_WINNT=0x0601'
 
 log "Сборка nginx (Release)"
 make -j"$(nproc)"
@@ -141,10 +172,19 @@ strip -s objs/nginx.exe || true
 
 version="$(grep NGINX_VERSION src/core/nginx.h | grep -oP '(\d+\.)+\d+')"
 machine_str="$(gcc -dumpmachine | cut -d'-' -f1)"
-mv -f /d/a/nginx/nginx/nginx/objs/nginx.exe "${RELEASE_DIR}/nginx-${version}-${machine_str}.exe"
+mv -f /d/a/nginx/nginx/nginx/objs/nginx.exe "${RELEASE_DIR}/nginx.exe"
 
 # Экспорт версии для последующих шагов (напр. упаковки)
 echo "NGINX_VERSION=${version}" > "${RELEASE_DIR}/.env"
 
+# === Сборка с отладкой (Debug) ===
+log "Сборка с отладкой (Debug)"
+configure_args+=(--with-debug)
+auto/configure "${configure_args[@]}" \
+  --with-cc-opt='-DFD_SETSIZE=32768 -O2 -fno-strict-aliasing -pipe' \
+  --with-openssl-opt='-DFD_SETSIZE=32768 no-tests -D_WIN32_WINNT=0x0601'
+
+make -j"$(nproc)"
+mv -f /d/a/nginx/nginx/nginx/objs/nginx.exe "${RELEASE_DIR}/nginx-debug.exe"
 
 cd "${REPO_ROOT}"
