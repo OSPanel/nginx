@@ -141,16 +141,10 @@ jobs:
           chmod +x ./package.sh
           ./package.sh
 
-      - name: Generate release tag
-        id: gen_tag
-        shell: pwsh
-        run: |
-          echo "tag=${VER}" >> $env:GITHUB_OUTPUT
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.gen_tag.outputs.tag }}
+          tag_name: ${VER}
           body: "https://nginx.org/en/CHANGES"
           files: Release/**
 
