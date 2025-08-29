@@ -162,19 +162,12 @@ configure_args=(
   --add-module=../nginx_fancyindex
   --with-ld-opt="-Wl,--gc-sections,--build-id=none"
   --prefix=
-  --with-http_v2_module
-  "--with-openssl=${OPENSSL}"
-  --with-http_ssl_module
-  --with-mail_ssl_module
-  --with-stream_ssl_module
-  --with-stream_ssl_preread_module
 )
 
 # === Первая сборка (Release) ===
 log "Конфигурация сборки (Release)"
 auto/configure "${configure_args[@]}" \
-  --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -pipe' \
-  --with-openssl-opt='-DFD_SETSIZE=32768 no-tests -D_WIN32_WINNT=0x0601'
+  --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -pipe'
 
 log "Сборка nginx (Release)"
 make -j"$(nproc)"
