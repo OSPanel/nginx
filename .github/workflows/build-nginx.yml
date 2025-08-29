@@ -154,9 +154,9 @@ jobs:
         with:
           tag_name: ${{ steps.gen_tag.outputs.tag }}
           body: "https://nginx.org/en/CHANGES"
-          files: Release/${{ steps.pkgname.outputs.pkg_name }}
+          files: Release/${{ env.PKG_NAME }}
 
-      - name: Clean up release folder
-        run: |
-          Remove-Item Release -Recurse -Force
+      - name: Cleanup Release dir
+          shell: pwsh
+          run: Remove-Item Release -Recurse -Force
 
