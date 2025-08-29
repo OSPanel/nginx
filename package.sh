@@ -1,55 +1,81 @@
 #!/bin/bash
-cp -rf /mingw64/bin/libGeoIP-1.dll ./Release/libGeoIP-1.dll
-cp -rf /mingw64/bin/libmaxminddb.dll ./Release/libmaxminddb.dll
-cp -rf /mingw64/bin/libgd.dll ./Release/libgd.dll
-cp -rf /mingw64/bin/libopenjp2-7.dll ./Release/libopenjp2-7.dll
-cp -rf /mingw64/bin/libopenjph-0.21.dll ./Release/libopenjph-0.21.dll
-cp -rf /mingw64/bin/libopenh264-7.dll ./Release/libopenh264-7.dll
-cp -rf /mingw64/bin/libsharpyuv-0.dll ./Release/libsharpyuv-0.dll
-cp -rf /mingw64/bin/libfreetype-6.dll ./Release/libfreetype-6.dll
-cp -rf /mingw64/bin/libfontconfig-1.dll ./Release/libfontconfig-1.dll
-cp -rf /mingw64/bin/libheif.dll ./Release/libheif.dll
-cp -rf /mingw64/bin/libavif-16.dll ./Release/libavif-16.dll
-cp -rf /mingw64/bin/libkvazaar-7.dll ./Release/libkvazaar-7.dll
-cp -rf /mingw64/bin/libiconv-2.dll ./Release/libiconv-2.dll
-cp -rf /mingw64/bin/libcryptopp.dll ./Release/libcryptopp.dll
-cp -rf /mingw64/bin/libjpeg-8.dll ./Release/libjpeg-8.dll
-cp -rf /mingw64/bin/libimagequant.dll ./Release/libimagequant.dll
-cp -rf /mingw64/bin/libwebp-7.dll ./Release/libwebp-7.dll
-cp -rf /mingw64/bin/libpng16-16.dll ./Release/libpng16-16.dll
-cp -rf /mingw64/bin/libXpm-noX4.dll ./Release/libXpm-noX4.dll
-cp -rf /mingw64/bin/libaom.dll ./Release/libaom.dll
-cp -rf /mingw64/bin/zlib1.dll ./Release/zlib1.dll
-cp -rf /mingw64/bin/libtiff-6.dll ./Release/libtiff-6.dll
-cp -rf /mingw64/bin/libdav1d-7.dll ./Release/libdav1d-7.dll
-cp -rf /mingw64/bin/librav1e.dll ./Release/librav1e.dll
-cp -rf /mingw64/bin/libyuv.dll ./Release/libyuv.dll
-cp -rf /mingw64/bin/libgcc_s_seh-1.dll ./Release/libgcc_s_seh-1.dll
-cp -rf /mingw64/bin/libSvtAv1Enc-3.dll ./Release/libSvtAv1Enc-3.dll
-cp -rf /mingw64/bin/libintl-8.dll ./Release/libintl-8.dll
-cp -rf /mingw64/bin/libexpat-1.dll ./Release/libexpat-1.dll
-cp -rf /mingw64/bin/libbz2-1.dll ./Release/libbz2-1.dll
-cp -rf /mingw64/bin/libharfbuzz-0.dll ./Release/libharfbuzz-0.dll
-cp -rf /mingw64/bin/libbrotlienc.dll ./Release/libbrotlienc.dll
-cp -rf /mingw64/bin/libde265-0.dll ./Release/libde265-0.dll
-cp -rf /mingw64/bin/libstdc++-6.dll ./Release/libstdc++-6.dll
-cp -rf /mingw64/bin/libbrotlidec.dll ./Release/libbrotlidec.dll
-cp -rf /mingw64/bin/libx265-215.dll ./Release/libx265-215.dll
-cp -rf /mingw64/bin/libjbig-0.dll ./Release/libjbig-0.dll
-cp -rf /mingw64/bin/libdeflate.dll ./Release/libdeflate.dll
-cp -rf /mingw64/bin/libLerc.dll ./Release/libLerc.dll
-cp -rf /mingw64/bin/liblzma-5.dll ./Release/liblzma-5.dll
-cp -rf /mingw64/bin/libzstd.dll ./Release/libzstd.dll
-cp -rf /mingw64/bin/libbrotlicommon.dll ./Release/libbrotlicommon.dll
-cp -rf /mingw64/bin/libwinpthread-1.dll ./Release/libwinpthread-1.dll
-cp -rf /mingw64/bin/libgraphite2.dll ./Release/libgraphite2.dll
-cp -rf /mingw64/bin/libglib-2.0-0.dll ./Release/libglib-2.0-0.dll
-cp -rf /mingw64/bin/libpcre2-8-0.dll ./Release/libpcre2-8-0.dll
+set -euo pipefail
+shopt -s nullglob
 
-cp -rf nginx/conf ./Release
-cp -rf nginx/docs/html ./Release
-cp -rf nginx/contrib ./Release
-mkdir -p ./Release/temp
-mkdir -p ./Release/logs
-cd ./Release
-7z a -mx9 nginx-bin.7z nginx-*.exe *.dll contrib docs conf html temp logs
+log() {
+  echo -e "\033[1;34m[PKG]\033[0m $*"
+}
+warn() {
+  echo -e "\033[1;33m[WARN]\033[0m $*" 1>&2
+}
+
+TARGET_DIR="./Release"
+SRC_BIN="/mingw64/bin"
+
+mkdir -p "${TARGET_DIR}"
+mkdir -p "${TARGET_DIR}/temp" "${TARGET_DIR}/logs"
+
+cp_dll() {
+  local pattern="$1"
+  local found=0
+  for f in ${SRC_BIN}/${pattern}; do
+    if [[ -f "$f" ]]; then
+      cp -f "$f" "${TARGET_DIR}/$(basename "$f")"
+      found=1
+    fi
+  done
+  if [[ $found -eq 0 ]]; then
+    warn "Не найдено по маске: ${pattern}"
+  else
+    log "Скопировано: ${pattern}"
+  fi
+}
+
+# Проверка зависимостей через ldd и докопирование недостающих
+copy_missing_deps() {
+  local exe
+  for exe in "${TARGET_DIR}"/nginx-*.exe; do
+    [[ -f "$exe" ]] || continue
+    log "Проверка зависимостей: $(basename "$exe")"
+    while read -r line; do
+      # Примеры строк ldd: "libxyz-1.dll => /mingw64/bin/libxyz-1.dll (0x...)" или "libxyz-1.dll => not found"
+      local lib path
+      lib="$(echo "$line" | awk '{print $1}')"
+      if echo "$line" | grep -q "=> /"; then
+        path="$(echo "$line" | awk '{print $3}')"
+        if [[ -f "$path" ]]; then
+          cp -nf "$path" "${TARGET_DIR}/" || true
+        fi
+      elif echo "$line" | grep -q "not found"; then
+        warn "Не найдена зависимость: $lib"
+        # Пытаемся найти в /mingw64/bin
+        if [[ -f "${SRC_BIN}/${lib}" ]]; then
+          cp -f "${SRC_BIN}/${lib}" "${TARGET_DIR}/"
+          log "Докопировано: ${lib}"
+        fi
+      fi
+    done < <(ldd "$exe" || true)
+  done
+}
+copy_missing_deps
+
+# Конфиги и статика
+if [[ -d nginx/conf ]]; then
+  cp -rf nginx/conf "${TARGET_DIR}/"
+fi
+if [[ -d nginx/docs/html ]]; then
+  mkdir -p "${TARGET_DIR}/docs"
+  cp -rf nginx/docs/html "${TARGET_DIR}/"
+fi
+if [[ -d nginx/contrib ]]; then
+  cp -rf nginx/contrib "${TARGET_DIR}/"
+fi
+
+# Пакет
+pushd "${TARGET_DIR}" >/dev/null
+7z a -mx9 nginx-bin.7z nginx-*.exe *.dll contrib docs conf html temp logs || {
+  warn "Архивация завершилась с предупреждением или не все файлы найдены"
+}
+popd >/dev/null
+
+log "Готово. Пакет: ${TARGET_DIR}/nginx-bin.7z"
