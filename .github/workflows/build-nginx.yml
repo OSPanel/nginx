@@ -177,17 +177,11 @@ jobs:
             --with-ld-opt="-Wl,--gc-sections,--build-id=none"
             --prefix=
             --with-http_v2_module
-            "--with-openssl=$OPENSSL"
-            --with-http_ssl_module
-            --with-mail_ssl_module
-            --with-stream_ssl_module
-            --with-stream_ssl_preread_module
           )
 
           log "Конфигурация Release"
           auto/configure "${configure_args[@]}" \
-            --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -pipe' \
-            --with-openssl-opt='-DFD_SETSIZE=32768 no-tests -D_WIN32_WINNT=0x0601'
+            --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -pipe'
 
           make -j"$(nproc)"
           strip -s objs/nginx.exe || true
@@ -197,16 +191,7 @@ jobs:
           mv -f objs/nginx.exe "Release/nginx-${version}-${machine_str}.exe"
           echo "NGINX_VERSION=${version}" > Release/.env
 
-          log "Конфигурация Debug"
-          configure_args+=(--with-debug)
-          auto/configure "${configure_args[@]}" \
-            --with-cc-opt='-DFD_SETSIZE=32768 -O2 -fno-strict-aliasing -pipe' \
-            --with-openssl-opt='-DFD_SETSIZE=32768 no-tests -D_WIN32_WINNT=0x0601'
-
-          make -j"$(nproc)"
-          mv -f objs/nginx.exe "Release/nginx-${version}-${machine_str}-debug.exe"
-
-          cd ..
+           cd ..
 
           # Архивация пакета
           PKG_NAME="nginx-${version}.7z"
