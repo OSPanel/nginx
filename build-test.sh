@@ -57,6 +57,11 @@ sed -i 's/^#pragma warning(push)/\/\/&/' nginx_rtmp_module/ngx_rtmp.h
 sed -i 's/^#pragma warning(disable:4200)/\/\/&/' nginx_rtmp_module/ngx_rtmp.h
 sed -i 's/^#pragma warning(pop)/\/\/&/' nginx_rtmp_module/ngx_rtmp.h
 
+# Исправление сравнения signed/unsigned
+sed -i 's/lo == INVALID_SET_FILE_POINTER/((DWORD)lo == INVALID_SET_FILE_POINTER)/' \
+    nginx_rtmp_module/ngx_rtmp_record_module.c
+sed -i 's/| lo)/| (DWORD)lo)/' nginx_rtmp_module/ngx_rtmp_record_module.c
+
 # Патчим geoip2: заменяем во всех файлах нужную строку
 find nginx_http_geoip2_module -type f -exec sed -i \
     's/ngx_file_info(database->mmdb.filename/ngx_file_info((u_char *) database->mmdb.filename/g' {} +
