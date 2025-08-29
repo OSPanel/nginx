@@ -43,7 +43,7 @@ jobs:
             p7zip
             pkgconf
             openssl-devel
-            mingw-w64-libgd
+            mingw-w64-x86_64-libgd
             mingw-w64-x86_64-libheif
             mingw-w64-x86_64-libavif
             mingw-w64-x86_64-aom
