@@ -71,4 +71,10 @@ if [[ -d nginx/contrib ]]; then
   cp -rf nginx/contrib "${TARGET_DIR}/"
 fi
 
+pushd "${TARGET_DIR}" >/dev/null
+7z a -mx9 "$PKG_NAME" nginx*.exe *.dll contrib docs conf html temp logs || {
+  warn "Архивация завершилась с предупреждением или не все файлы найдены"
+}
+popd >/dev/null
+
 log "Готово."
