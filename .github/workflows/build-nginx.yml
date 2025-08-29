@@ -132,19 +132,23 @@ jobs:
             PKG_NAME="nginx-bin.7z"
           fi
 
-          echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
-          echo "pkg_name=$PKG_NAME" >> $GITHUB_OUTPUT
-          echo "Resolved package name: $PKG_NAME"
+          echo "PKG_NAME=${VER}" >> $GITHUB_ENV
 
       - name: Package nginx
         run: |
           chmod +x ./package.sh
           ./package.sh
 
+      - name: Generate release tag
+        id: gen_tag
+        shell: pwsh
+        run: |
+          echo "tag=${PKG_NAME}" >> $env:GITHUB_OUTPUT
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${VER}
+          tag_name: ${{ steps.gen_tag.outputs.tag }}
           body: "https://nginx.org/en/CHANGES"
           files: Release/**
 
