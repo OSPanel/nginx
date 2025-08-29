@@ -51,37 +51,6 @@ git clone --branch master --depth=1 --recursive https://github.com/aperezdc/ngx-
 git clone --branch master --depth=1 --recursive https://github.com/leev/ngx_http_geoip2_module.git nginx_http_geoip2_module
 git clone --branch master --depth=1 --recursive https://github.com/arut/nginx-rtmp-module nginx_rtmp_module
 
-# Патч для совместимости ngx_rtmp.h с MinGW
-sed -i 's/^typedef __int8 *int8_t;//' nginx_rtmp_module/ngx_rtmp.h
-sed -i 's/^#pragma warning(push)/\/\/&/' nginx_rtmp_module/ngx_rtmp.h
-sed -i 's/^#pragma warning(disable:4200)/\/\/&/' nginx_rtmp_module/ngx_rtmp.h
-sed -i 's/^#pragma warning(pop)/\/\/&/' nginx_rtmp_module/ngx_rtmp.h
-
-# Исправление сравнения signed/unsigned
-sed -i 's/lo == INVALID_SET_FILE_POINTER/((DWORD)lo == INVALID_SET_FILE_POINTER)/' \
-    nginx_rtmp_module/ngx_rtmp_record_module.c
-sed -i 's/| lo)/| (DWORD)lo)/' nginx_rtmp_module/ngx_rtmp_record_module.c
-
-# Исправление pragma директив в ngx_rtmp_mp4_module.c
-sed -i 's/^#pragma warning(push)/#ifdef _MSC_VER\n&\n#endif/' nginx_rtmp_module/ngx_rtmp_mp4_module.c
-sed -i 's/^#pragma warning(disable:4200)/#ifdef _MSC_VER\n&\n#endif/' nginx_rtmp_module/ngx_rtmp_mp4_module.c
-sed -i 's/^#pragma warning(pop)/#ifdef _MSC_VER\n&\n#endif/' nginx_rtmp_module/ngx_rtmp_mp4_module.c
-
-# Исправление неиспользуемых переменных в ngx_rtmp_exec_module.c
-# Вместо атрибутов безопаснее закомментировать объявления, чтобы MinGW не падал на -Werror
-sed -i 's/^\(static ngx_rtmp_eval_t.*ngx_rtmp_exec_push_eval.*\)$/\/\/ \1/' \
-    nginx_rtmp_module/ngx_rtmp_exec_module.c
-sed -i 's/^\(static ngx_rtmp_eval_t.*ngx_rtmp_exec_pull_eval.*\)$/\/\/ \1/' \
-    nginx_rtmp_module/ngx_rtmp_exec_module.c
-sed -i 's/^\(static ngx_rtmp_eval_t.*ngx_rtmp_exec_event_eval.*\)$/\/\/ \1/' \
-    nginx_rtmp_module/ngx_rtmp_exec_module.c
-
-# Исправление неиспользуемых переменных в ngx_rtmp_auto_push_module.c
-sed -i 's/static ngx_rtmp_publish_pt *next_publish;/static ngx_rtmp_publish_pt __attribute__((unused)) next_publish;/' \
-    nginx_rtmp_module/ngx_rtmp_auto_push_module.c
-sed -i 's/static ngx_rtmp_delete_stream_pt *next_delete_stream;/static ngx_rtmp_delete_stream_pt __attribute__((unused)) next_delete_stream;/' \
-    nginx_rtmp_module/ngx_rtmp_auto_push_module.c
-
 # Патчим geoip2: заменяем во всех файлах нужную строку
 find nginx_http_geoip2_module -type f -exec sed -i \
     's/ngx_file_info(database->mmdb.filename/ngx_file_info((u_char *) database->mmdb.filename/g' {} +
@@ -191,7 +160,6 @@ configure_args=(
   --add-module=../nginx_brotli_module
   --add-module=../nginx_http_geoip2_module
   --add-module=../nginx_fancyindex
-  --add-module=../nginx_rtmp_module
   --with-ld-opt="-Wl,--gc-sections,--build-id=none"
   --prefix=
   --with-http_v2_module
