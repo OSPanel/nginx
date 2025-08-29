@@ -42,7 +42,8 @@ jobs:
             perl
             p7zip
             pkgconf
-            mingw-w64-x86_64-gd
+            openssl-devel
+            mingw-w64-libgd
             mingw-w64-x86_64-libheif
             mingw-w64-x86_64-libavif
             mingw-w64-x86_64-aom
