@@ -124,35 +124,6 @@ configure_args=(
   --http-fastcgi-temp-path=temp/fastcgi
   --http-scgi-temp-path=temp/scgi
   --http-uwsgi-temp-path=temp/uwsgi
-  --with-http_realip_module
-  --with-http_addition_module
-  --with-http_sub_module
-  --with-http_dav_module
-  --with-http_stub_status_module
-  --with-http_flv_module
-  --with-http_mp4_module
-  --with-http_gunzip_module
-  --with-http_gzip_static_module
-  --with-http_auth_request_module
-  --with-http_image_filter_module
-  --with-http_random_index_module
-  --with-http_secure_link_module
-  --with-http_slice_module
-  --with-stream_realip_module
-  --with-mail
-  --with-stream
-  --with-poll_module
-  "--with-pcre=${WITH_PCRE}"
-  --with-pcre-jit
-  "--with-zlib=${ZLIB}"
-  --with-http_geoip_module
-  --with-stream_geoip_module
-  --add-module=../nginx_brotli_module
-  --add-module=../nginx_http_geoip2_module
-  --add-module=../nginx_fancyindex
-  --with-ld-opt="-Wl,--gc-sections,--build-id=none"
-  --prefix=
-  --with-http_v2_module
 )
 
 # === Первая сборка (Release) ===
