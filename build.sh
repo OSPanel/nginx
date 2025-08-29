@@ -42,6 +42,10 @@ GIT_USER_EMAIL="$(git config --global user.email || echo "")"
 [[ -z "$GIT_USER_NAME" ]] && git config --global user.name "$BUILD_USER_NAME"
 [[ -z "$GIT_USER_EMAIL" ]] && git config --global user.email "$BUILD_USER_EMAIL"
 
+# === Каталоги ===
+mkdir -p "${RELEASE_DIR}"
+mkdir -p "${DOCS_DIR}"
+
 # === Получение версий зависимостей ===
 ZLIB="$(fetch_latest_version 'https://zlib.net/' 'zlib-(\d+\.)+\d+' 'zlib-1.3.1')"
 PCRE="$(fetch_latest_version 'https://sourceforge.net/projects/pcre/rss?path=/pcre/' 'pcre-(\d+\.)+\d+' 'pcre-8.45')"
@@ -55,6 +59,10 @@ log "OpenSSL: $OPENSSL"
 
 # === Клонирование и патчи nginx ===
 log "Клонирование nginx"
+if [[ -d nginx ]]; then
+  rm -rf nginx
+fi
+
 if [[ -z "$NGINX_TAG" ]]; then
   git clone --depth=1 https://github.com/nginx/nginx.git
 else
@@ -62,13 +70,13 @@ else
 fi
 cd nginx || exit 1
 
-git checkout -b patch
+git checkout -b patch || git checkout patch
 mkdir -p docs
 
 # Отключение патчей, если utf16 поддерживается
 if grep -q 'ngx_utf16_to_utf8' src/os/win32/ngx_files.c; then
   log "UTF-16 уже поддерживается, удаление старых патчей"
-  rm -f ../nginx-000{2..6}-*.patch
+  rm -f ../nginx-000{2..6}-*.patch || true
 fi
 
 git am -3 ../nginx-*.patch || true
@@ -88,21 +96,22 @@ fi
 
 download_and_extract "https://www.openssl.org/source/${OPENSSL}.tar.gz"
 
-# Исправление openssl-1.1.1d
+# Исправление openssl-1.1.1d (на всякий)
 if [[ "$OPENSSL" == "openssl-1.1.1d" ]]; then
   sed -i 's/return return 0;/return 0;/' openssl-1.1.1d/crypto/threads_none.c
 fi
 
 # === Документация и лицензии ===
-mkdir -p "${DOCS_DIR}"
 make -f docs/GNUmakefile changes || true
 mv -f tmp/*/CHANGES* "${DOCS_DIR}/" || true
 
-cp -f LICENSE README.md "${DOCS_DIR}/"
-cp -pf "${OPENSSL}/LICENSE.txt" "${DOCS_DIR}/OpenSSL.LICENSE.txt"
+cp -f LICENSE README.md "${DOCS_DIR}/" || true
+cp -pf "${OPENSSL}/LICENSE.txt" "${DOCS_DIR}/OpenSSL.LICENSE.txt" || true
 cp -pf "${WITH_PCRE}/LICENCE"* "${DOCS_DIR}/PCRE.LICENCE" || true
-sed -ne '/^ (C) 1995-20/,/^  jloup@gzip\.org/p' "${ZLIB}/README" > "${DOCS_DIR}/zlib.LICENSE"
-touch -r "${ZLIB}/README" "${DOCS_DIR}/zlib.LICENSE"
+if [[ -f "${ZLIB}/README" ]]; then
+  sed -ne '/^ (C) 1995-20/,/^  jloup@gzip\.org/p' "${ZLIB}/README" > "${DOCS_DIR}/zlib.LICENSE" || true
+  touch -r "${ZLIB}/README" "${DOCS_DIR}/zlib.LICENSE" || true
+fi
 
 # === Конфигурация сборки ===
 configure_args=(
@@ -152,22 +161,22 @@ configure_args=(
   --with-stream_ssl_preread_module
 )
 
-# === Первая сборка ===
-log "Конфигурация сборки"
+# === Первая сборка (Release) ===
+log "Конфигурация сборки (Release)"
 auto/configure "${configure_args[@]}" \
   --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -pipe' \
   --with-openssl-opt='-DFD_SETSIZE=32768 no-tests -D_WIN32_WINNT=0x0601'
 
-log "Сборка nginx"
+log "Сборка nginx (Release)"
 make -j"$(nproc)"
-strip -s objs/nginx.exe
+strip -s objs/nginx.exe || true
 
 version="$(grep NGINX_VERSION src/core/nginx.h | grep -oP '(\d+\.)+\d+')"
 machine_str="$(gcc -dumpmachine | cut -d'-' -f1)"
 mv -f objs/nginx.exe "${RELEASE_DIR}/nginx-${version}-${machine_str}.exe"
 
-# === Сборка с отладкой ===
-log "Сборка с отладкой"
+# === Сборка с отладкой (Debug) ===
+log "Сборка с отладкой (Debug)"
 configure_args+=(--with-debug)
 auto/configure "${configure_args[@]}" \
   --with-cc-opt='-DFD_SETSIZE=32768 -O2 -fno-strict-aliasing -pipe' \
@@ -175,4 +184,5 @@ auto/configure "${configure_args[@]}" \
 
 make -j"$(nproc)"
 mv -f objs/nginx.exe "${RELEASE_DIR}/nginx-${version}-${machine_str}-debug.exe"
+
 cd ..
