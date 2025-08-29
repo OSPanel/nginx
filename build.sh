@@ -7,6 +7,7 @@ BUILD_USER_NAME="Build Bot"
 BUILD_USER_EMAIL="nobody@example.com"
 RELEASE_DIR="../Release"
 DOCS_DIR="${RELEASE_DIR}/docs"
+mkdir -p ${DOCS_DIR}
 
 # === Утилиты ===
 log() {
