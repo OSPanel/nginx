@@ -71,7 +71,7 @@ if [[ -d nginx/contrib ]]; then
   cp -rf nginx/contrib "${TARGET_DIR}/"
 fi
 
-PKG_NAME="${PKG_NAME:-nginx-bin.7z}"
+PKG_NAME="${PKG_NAME:nginx-bin.7z}"
 
 pushd "${TARGET_DIR}" >/dev/null
 7z a -mx9 "$PKG_NAME" nginx*.exe *.dll contrib docs conf html temp logs || {
