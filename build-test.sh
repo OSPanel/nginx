@@ -75,6 +75,12 @@ sed -i 's/static ngx_rtmp_eval_t \* ngx_rtmp_exec_pull_eval\[\]/static ngx_rtmp_
 sed -i 's/static ngx_rtmp_eval_t \* ngx_rtmp_exec_event_eval\[\]/static ngx_rtmp_eval_t * __attribute__((unused)) ngx_rtmp_exec_event_eval[]/' \
     nginx_rtmp_module/ngx_rtmp_exec_module.c
 
+# Исправление неиспользуемых переменных в ngx_rtmp_auto_push_module.c
+sed -i 's/static ngx_rtmp_publish_pt *next_publish;/static ngx_rtmp_publish_pt __attribute__((unused)) next_publish;/' \
+    nginx_rtmp_module/ngx_rtmp_auto_push_module.c
+sed -i 's/static ngx_rtmp_delete_stream_pt *next_delete_stream;/static ngx_rtmp_delete_stream_pt __attribute__((unused)) next_delete_stream;/' \
+    nginx_rtmp_module/ngx_rtmp_auto_push_module.c
+
 # Патчим geoip2: заменяем во всех файлах нужную строку
 find nginx_http_geoip2_module -type f -exec sed -i \
     's/ngx_file_info(database->mmdb.filename/ngx_file_info((u_char *) database->mmdb.filename/g' {} +
