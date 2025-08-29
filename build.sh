@@ -173,6 +173,9 @@ version="$(grep NGINX_VERSION src/core/nginx.h | grep -oP '(\d+\.)+\d+')"
 machine_str="$(gcc -dumpmachine | cut -d'-' -f1)"
 mv -f objs/nginx.exe "${RELEASE_DIR}/nginx-${version}-${machine_str}.exe"
 
+# Экспорт версии для последующих шагов (напр. упаковки)
+echo "NGINX_VERSION=${version}" > ../Release/.env
+
 # === Сборка с отладкой (Debug) ===
 log "Сборка с отладкой (Debug)"
 configure_args+=(--with-debug)
