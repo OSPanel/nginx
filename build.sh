@@ -152,18 +152,12 @@ configure_args=(
   --with-ld-opt="-Wl,--gc-sections,--build-id=none"
   --prefix=
   --with-http_v2_module
-  "--with-openssl=${OPENSSL}"
-  --with-http_ssl_module
-  --with-mail_ssl_module
-  --with-stream_ssl_module
-  --with-stream_ssl_preread_module
 )
 
 # === Первая сборка (Release) ===
 log "Конфигурация сборки (Release)"
 auto/configure "${configure_args[@]}" \
-  --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -pipe' \
-  --with-openssl-opt='-DFD_SETSIZE=32768 no-tests -D_WIN32_WINNT=0x0601'
+  --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -pipe'
 
 log "Сборка nginx (Release)"
 make -j"$(nproc)"
@@ -176,14 +170,5 @@ mv -f objs/nginx.exe "${RELEASE_DIR}/nginx-${version}-${machine_str}.exe"
 # Экспорт версии для последующих шагов (напр. упаковки)
 echo "NGINX_VERSION=${version}" > ../Release/.env
 
-# === Сборка с отладкой (Debug) ===
-log "Сборка с отладкой (Debug)"
-configure_args+=(--with-debug)
-auto/configure "${configure_args[@]}" \
-  --with-cc-opt='-DFD_SETSIZE=32768 -O2 -fno-strict-aliasing -pipe' \
-  --with-openssl-opt='-DFD_SETSIZE=32768 no-tests -D_WIN32_WINNT=0x0601'
-
-make -j"$(nproc)"
-mv -f objs/nginx.exe "${RELEASE_DIR}/nginx-${version}-${machine_str}-debug.exe"
 
 cd ..
