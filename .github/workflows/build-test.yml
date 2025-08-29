@@ -1,0 +1,111 @@
+name: Build Nginx (TEST)
+
+on:
+  workflow_dispatch:
+    inputs:
+      TAG:
+        description: 'Введите git tag/branch nginx (например: 1.28.0, 1.28.0):'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  build:
+    runs-on: windows-2022
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          msystem: MINGW64
+          install: >
+            base-devel
+            mingw-w64-x86_64-toolchain
+            git
+            wget
+            curl
+            tar
+            xz
+            bzip2
+            patch
+            perl
+            p7zip
+            pkgconf
+            openssl-devel
+            mingw-w64-x86_64-libiconv
+            mingw-w64-x86_64-libjpeg
+            mingw-w64-x86_64-xpm-nox
+            mingw-w64-x86_64-zlib
+            mingw-w64-x86_64-libheif
+            mingw-w64-x86_64-libavif
+            mingw-w64-x86_64-aom
+            mingw-w64-x86_64-dav1d
+            mingw-w64-x86_64-rav1e
+            mingw-w64-x86_64-libyuv
+            mingw-w64-x86_64-freetype
+            mingw-w64-x86_64-fontconfig
+            mingw-w64-x86_64-harfbuzz
+            mingw-w64-x86_64-brotli
+            mingw-w64-x86_64-libpng
+            mingw-w64-x86_64-libtiff
+            mingw-w64-x86_64-libxslt
+            mingw-w64-x86_64-openjpeg2
+            mingw-w64-x86_64-openh264
+            mingw-w64-x86_64-x265
+            mingw-w64-x86_64-kvazaar
+            mingw-w64-x86_64-libwebp
+            mingw-w64-x86_64-libimagequant
+            mingw-w64-x86_64-jbigkit
+            mingw-w64-x86_64-libdeflate
+            mingw-w64-x86_64-lerc
+            mingw-w64-x86_64-xz
+            mingw-w64-x86_64-zstd
+            mingw-w64-x86_64-expat
+            mingw-w64-x86_64-glib2
+            mingw-w64-x86_64-libgd
+            mingw-w64-x86_64-pcre2
+            mingw-w64-x86_64-geoip
+            mingw-w64-x86_64-libmaxminddb
+
+      - name: Prepare Git identity (anonymous)
+        run: |
+          NAME="${{ github.actor }}"
+          EMAIL="${{ github.actor }}@users.noreply.github.com"
+          echo "BUILD_USER_NAME=$NAME"  >> $GITHUB_ENV
+          echo "BUILD_USER_EMAIL=$EMAIL" >> $GITHUB_ENV
+
+      - name: Normalize TAG input
+        run: |
+          RAW="release-${{ github.event.inputs.TAG }}"
+          if [ -z "$RAW" ] || [ "$RAW" = "latest" ]; then
+            echo "TAG=" >> $GITHUB_ENV
+          else
+            echo "TAG=$RAW" >> $GITHUB_ENV
+          fi
+
+      - name: Show toolchain versions
+        run: |
+          gcc --version
+          g++ --version
+          make --version
+          perl --version
+
+      - name: Build nginx (Release + Debug)
+        env:
+          TAG: ${{ env.TAG }}
+          BUILD_USER_NAME: ${{ env.BUILD_USER_NAME }}
+          BUILD_USER_EMAIL: ${{ env.BUILD_USER_EMAIL }}
+        run: |
+          chmod +x ./build-test.sh
+          ./build-test.sh
