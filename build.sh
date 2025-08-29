@@ -48,7 +48,11 @@ mkdir -p "${DOCS_DIR}"
 # === Клонируем последние версии master + сабмодули ===
 git clone --branch master --depth=1 --recursive https://github.com/google/ngx_brotli.git nginx_brotli_module
 git clone --branch master --depth=1 --recursive https://github.com/aperezdc/ngx-fancyindex.git nginx_fancyindex
-git clone --branch 3.4 --depth=1 --recursive https://github.com/leev/ngx_http_geoip2_module.git nginx_http_geoip2_module
+git clone --branch master --depth=1 --recursive https://github.com/leev/ngx_http_geoip2_module.git nginx_http_geoip2_module
+
+# Патчим geoip2: заменяем во всех файлах нужную строку
+find nginx_http_geoip2_module -type f -exec sed -i \
+    's/if (ngx_file_info(database->mmdb.filename, &fi) == NGX_FILE_ERROR) {/if (ngx_file_info((u_char *) database->mmdb.filename, &fi) == NGX_FILE_ERROR) {/' {} +
 
 # === Получение версий зависимостей ===
 ZLIB="$(fetch_latest_version 'https://zlib.net/' 'zlib-(\d+\.)+\d+' 'zlib-1.3.1')"
