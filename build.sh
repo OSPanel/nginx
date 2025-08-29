@@ -147,4 +147,4 @@ mv -f /d/a/nginx/nginx/nginx/objs/nginx.exe "${RELEASE_DIR}/nginx-${version}-${m
 echo "NGINX_VERSION=${version}" > "${RELEASE_DIR}/.env"
 
 
-cd "REPO_ROOT"
+cd "${REPO_ROOT}"
