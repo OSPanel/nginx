@@ -148,3 +148,12 @@ jobs:
         with:
           name: ${{ steps.pkgname.outputs.pkg_name }}
           path: Release/${{ steps.pkgname.outputs.pkg_name }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.pkgname.outputs.release_name }}
+          name: ${{ steps.pkgname.outputs.release_name }}
+          files: Release/${{ steps.pkgname.outputs.pkg_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
