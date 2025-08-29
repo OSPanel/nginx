@@ -71,6 +71,4 @@ if [[ -d nginx/contrib ]]; then
   cp -rf nginx/contrib "${TARGET_DIR}/"
 fi
 
-PKG_NAME="${PKG_NAME:-nginx-bin.7z}"
-
-log "Готово. Пакет: ${TARGET_DIR}/${PKG_NAME}"
+log "Готово."
