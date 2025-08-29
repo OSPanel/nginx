@@ -43,7 +43,10 @@ jobs:
             p7zip
             pkgconf
             openssl-devel
-            mingw-w64-x86_64-libgd
+            mingw-w64-x86_64-libiconv
+            mingw-w64-x86_64-libjpeg
+            mingw-w64-x86_64-xpm-nox
+            mingw-w64-x86_64-zlib
             mingw-w64-x86_64-libheif
             mingw-w64-x86_64-libavif
             mingw-w64-x86_64-aom
@@ -70,6 +73,7 @@ jobs:
             mingw-w64-x86_64-zstd
             mingw-w64-x86_64-expat
             mingw-w64-x86_64-glib2
+            mingw-w64-x86_64-libgd
             mingw-w64-x86_64-pcre2
             mingw-w64-x86_64-geoip
             mingw-w64-x86_64-libmaxminddb
