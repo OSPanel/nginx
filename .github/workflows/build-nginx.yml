@@ -102,18 +102,60 @@ jobs:
           set -euo pipefail
           mkdir -p Release Release/docs Release/temp Release/logs
 
+          ############################
+          # === ФУНКЦИИ ===
+          ############################
+
           log() { echo -e "\033[1;32m[INFO]\033[0m $*"; }
           warn() { echo -e "\033[1;33m[WARN]\033[0m $*" 1>&2; }
 
-          # Настройка git
-          git config --global user.name "$BUILD_USER_NAME"
-          git config --global user.email "$BUILD_USER_EMAIL"
-
-          # Получение зависимостей
           fetch_latest_version() {
             local url="$1" pattern="$2" fallback="$3"
             curl -s "$url" | grep -ioP "$pattern" | sort -ruV | head -1 || echo "$fallback"
           }
+
+          download_and_extract() {
+            local url="$1"
+            local archive="${url##*/}"
+            wget -c -nv "$url"
+            case "$archive" in
+              *.tar.gz)  tar -xf "$archive" ;;
+              *.tar.bz2) tar -xf "$archive" ;;
+              *.tar.xz)  tar -xf "$archive" ;;
+              *) warn "Неизвестный формат: $archive"; exit 1 ;;
+            esac
+          }
+
+          copy_missing_deps() {
+            local exe
+            for exe in Release/nginx-*.exe; do
+              [[ -f "$exe" ]] || continue
+              log "Проверка зависимостей: $(basename "$exe")"
+              while read -r line; do
+                local lib path
+                lib="$(echo "$line" | awk '{print $1}')"
+                if echo "$line" | grep -q "=> /"; then
+                  path="$(echo "$line" | awk '{print $3}')"
+                  if [[ -f "$path" ]]; then
+                    cp -nf "$path" Release/ || true
+                  fi
+                elif echo "$line" | grep -q "not found"; then
+                  warn "Не найдена зависимость: $lib"
+                  if [[ -f "/mingw64/bin/${lib}" ]]; then
+                    cp -f "/mingw64/bin/${lib}" Release/
+                    log "Докопировано: ${lib}"
+                  fi
+                fi
+              done < <(ldd "$exe" || true)
+            done
+          }
+
+          ############################
+          # === НАСТРОЙКА ===
+          ############################
+
+          git config --global user.name "$BUILD_USER_NAME"
+          git config --global user.email "$BUILD_USER_EMAIL"
 
           ZLIB="$(fetch_latest_version 'https://zlib.net/' 'zlib-(\\d+\\.)+\\d+' 'zlib-1.3.1')"
           PCRE="$(fetch_latest_version 'https://sourceforge.net/projects/pcre/rss?path=/pcre/' 'pcre-(\\d+\\.)+\\d+' 'pcre-8.45')"
@@ -125,21 +167,21 @@ jobs:
           log "PCRE2: $PCRE2"
           log "OpenSSL: $OPENSSL"
 
-          # Клонирование nginx
+          ############################
+          # === СБОРКА NGINX ===
+          ############################
+
           if [ -d nginx ]; then rm -rf nginx; fi
           if [ -z "$TAG" ]; then
             git clone --depth=1 https://github.com/nginx/nginx.git
           else
             git clone --depth=1 --branch "$TAG" https://github.com/nginx/nginx.git
           fi
-          cd nginx
 
           git checkout -b patch || git checkout patch
           mkdir -p docs
-
           git am -3 nginx-*.patch || true
 
-          # Сборка
           configure_args=(
             --sbin-path=nginx.exe
             --conf-path=conf/nginx.conf
@@ -179,7 +221,7 @@ jobs:
             --with-http_v2_module
           )
 
-          log "Конфигурация Release"
+          log "Release build"
           auto/configure "${configure_args[@]}" \
             --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -pipe'
 
@@ -191,9 +233,14 @@ jobs:
           mv -f objs/nginx.exe "Release/nginx-${version}-${machine_str}.exe"
           echo "NGINX_VERSION=${version}" > Release/.env
 
-           cd ..
 
-          # Архивация пакета
+
+          ############################
+          # === УПАКОВКА ===
+          ############################
+
+          copy_missing_deps
+
           PKG_NAME="nginx-${version}.7z"
           pushd Release >/dev/null
           7z a -mx9 "$PKG_NAME" nginx-*.exe *.dll contrib docs conf html temp logs || true
@@ -204,7 +251,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nginx-executables
-          path: Release/*.exe
+          path: |
+            Release/*.exe
+            Release/docs/**
+            Release/conf/**
+            Release/html/**
+            Release/contrib/**
 
       - name: Upload package
         uses: actions/upload-artifact@v4
@@ -212,12 +264,3 @@ jobs:
           name: ${{ env.PKG_NAME }}
           path: Release/${{ env.PKG_NAME }}
 
-      - name: Upload docs/configs
-        uses: actions/upload-artifact@v4
-        with:
-          name: nginx-extra
-          path: |
-            Release/docs/**
-            Release/conf/**
-            Release/html/**
-            Release/contrib/**
