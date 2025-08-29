@@ -71,6 +71,23 @@ if [[ -d nginx/contrib ]]; then
   cp -rf nginx/contrib "${TARGET_DIR}/"
 fi
 
+# Удаляем системные DLL, которые не нужны в пакете
+remove_system_dlls() {
+  local dlls=(
+    combase.dll ole32.dll SHELL32.dll USP10.dll DWrite.dll USERENV.dll
+    bcryptprimitives.dll WSOCK32.dll msvcp_win.dll GDI32.dll gdi32full.dll
+    ucrtbase.dll USER32.dll win32u.dll WS2_32.dll ADVAPI32.dll bcrypt.dll
+    CRYPT32.dll KERNELBASE.dll msvcrt.dll ntdll.dll RPCRT4.dll sechost.dll
+  )
+  for dll in "${dlls[@]}"; do
+    if [[ -f "${TARGET_DIR}/${dll}" ]]; then
+      rm -f "${TARGET_DIR}/${dll}"
+      log "Удалён: ${dll}"
+    fi
+  done
+}
+remove_system_dlls
+
 pushd "${TARGET_DIR}" >/dev/null
 7z a -mx9 "$PKG_NAME" nginx*.exe *.dll contrib docs conf html temp logs || {
   warn "Архивация завершилась с предупреждением или не все файлы найдены"
