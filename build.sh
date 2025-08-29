@@ -172,8 +172,4 @@ mv -f /d/a/nginx/nginx/nginx/objs/nginx.exe "${RELEASE_DIR}/nginx.exe"
 echo "NGINX_VERSION=${version}" > "${RELEASE_DIR}/.env"
 
 
-
-make -j"$(nproc)"
-mv -f /d/a/nginx/nginx/nginx/objs/nginx.exe "${RELEASE_DIR}/nginx-debug.exe"
-
 cd "${REPO_ROOT}"
