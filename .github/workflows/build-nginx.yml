@@ -137,8 +137,6 @@ jobs:
           echo "Resolved package name: $PKG_NAME"
 
       - name: Package nginx
-        env:
-          PKG_NAME: ${{ env.PKG_NAME }}
         run: |
           chmod +x ./package.sh
           ./package.sh
