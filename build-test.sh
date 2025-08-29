@@ -62,6 +62,19 @@ sed -i 's/lo == INVALID_SET_FILE_POINTER/((DWORD)lo == INVALID_SET_FILE_POINTER)
     nginx_rtmp_module/ngx_rtmp_record_module.c
 sed -i 's/| lo)/| (DWORD)lo)/' nginx_rtmp_module/ngx_rtmp_record_module.c
 
+# Исправление pragma директив в ngx_rtmp_mp4_module.c
+sed -i 's/^#pragma warning(push)/#ifdef _MSC_VER\n&\n#endif/' nginx_rtmp_module/ngx_rtmp_mp4_module.c
+sed -i 's/^#pragma warning(disable:4200)/#ifdef _MSC_VER\n&\n#endif/' nginx_rtmp_module/ngx_rtmp_mp4_module.c
+sed -i 's/^#pragma warning(pop)/#ifdef _MSC_VER\n&\n#endif/' nginx_rtmp_module/ngx_rtmp_mp4_module.c
+
+# Исправление неиспользуемых переменных в ngx_rtmp_exec_module.c
+sed -i 's/static ngx_rtmp_eval_t \* ngx_rtmp_exec_push_eval\[\]/static ngx_rtmp_eval_t * __attribute__((unused)) ngx_rtmp_exec_push_eval[]/' \
+    nginx_rtmp_module/ngx_rtmp_exec_module.c
+sed -i 's/static ngx_rtmp_eval_t \* ngx_rtmp_exec_pull_eval\[\]/static ngx_rtmp_eval_t * __attribute__((unused)) ngx_rtmp_exec_pull_eval[]/' \
+    nginx_rtmp_module/ngx_rtmp_exec_module.c
+sed -i 's/static ngx_rtmp_eval_t \* ngx_rtmp_exec_event_eval\[\]/static ngx_rtmp_eval_t * __attribute__((unused)) ngx_rtmp_exec_event_eval[]/' \
+    nginx_rtmp_module/ngx_rtmp_exec_module.c
+
 # Патчим geoip2: заменяем во всех файлах нужную строку
 find nginx_http_geoip2_module -type f -exec sed -i \
     's/ngx_file_info(database->mmdb.filename/ngx_file_info((u_char *) database->mmdb.filename/g' {} +
