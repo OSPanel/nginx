@@ -5,9 +5,9 @@ set -euo pipefail
 NGINX_TAG="${TAG:-}"
 BUILD_USER_NAME="Build Bot"
 BUILD_USER_EMAIL="nobody@example.com"
-RELEASE_DIR="./Release"
+REPO_ROOT="$(cd "$(dirname "$0")" && pwd)"
+RELEASE_DIR="${REPO_ROOT}/Release"
 DOCS_DIR="${RELEASE_DIR}/docs"
-mkdir -p ${DOCS_DIR}
 
 # === Утилиты ===
 log() {
@@ -166,10 +166,10 @@ strip -s objs/nginx.exe || true
 
 version="$(grep NGINX_VERSION src/core/nginx.h | grep -oP '(\d+\.)+\d+')"
 machine_str="$(gcc -dumpmachine | cut -d'-' -f1)"
-mv -f objs/nginx.exe "${RELEASE_DIR}/nginx-${version}-${machine_str}.exe"
+mv -f nginx/objs/nginx.exe "${RELEASE_DIR}/nginx-${version}-${machine_str}.exe"
 
 # Экспорт версии для последующих шагов (напр. упаковки)
-echo "NGINX_VERSION=${version}" > ../Release/.env
+echo "NGINX_VERSION=${version}" > "${RELEASE_DIR}/.env"
 
 
-cd ..
+cd "REPO_ROOT"
