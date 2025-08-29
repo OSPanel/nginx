@@ -71,23 +71,10 @@ if [[ -d nginx/contrib ]]; then
   cp -rf nginx/contrib "${TARGET_DIR}/"
 fi
 
-# Пакет
-# Если имя пакета не передано, попробуем определить версию по имени exe: nginx-<ver>-<arch>.exe
-if [[ -z "${PKG_NAME:-}" ]]; then
-  exe="$(ls "${TARGET_DIR}"/nginx-*.exe 2>/dev/null | head -n1 || true)"
-  if [[ -n "$exe" ]]; then
-    # извлекаем версию между "nginx-" и "-<arch>.exe"
-    base="$(basename "$exe")"
-    ver="$(echo "$base" | sed -E 's/^nginx-([0-9]+\.[0-9]+(\.[0-9]+)?)-.+\.exe$/\1/')"
-    if [[ -n "$ver" && "$ver" != "$base" ]]; then
-      PKG_NAME="nginx-${ver}.7z"
-    fi
-  fi
-fi
-PKG_NAME="${PKG_NAME:-nginx-bin.7z}"
+PKG_NAME="${PKG_NAME:nginx-bin.7z}"
 
 pushd "${TARGET_DIR}" >/dev/null
-7z a -mx9 "$PKG_NAME" nginx-*.exe *.dll contrib docs conf html temp logs || {
+7z a -mx9 "$PKG_NAME" nginx*.exe *.dll contrib docs conf html temp logs || {
   warn "Архивация завершилась с предупреждением или не все файлы найдены"
 }
 popd >/dev/null
