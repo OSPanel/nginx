@@ -68,11 +68,12 @@ sed -i 's/^#pragma warning(disable:4200)/#ifdef _MSC_VER\n&\n#endif/' nginx_rtmp
 sed -i 's/^#pragma warning(pop)/#ifdef _MSC_VER\n&\n#endif/' nginx_rtmp_module/ngx_rtmp_mp4_module.c
 
 # Исправление неиспользуемых переменных в ngx_rtmp_exec_module.c
-sed -i 's/static ngx_rtmp_eval_t \* ngx_rtmp_exec_push_eval\[\]/static ngx_rtmp_eval_t * __attribute__((unused)) ngx_rtmp_exec_push_eval[]/' \
+# Вместо атрибутов безопаснее закомментировать объявления, чтобы MinGW не падал на -Werror
+sed -i 's/^\(static ngx_rtmp_eval_t.*ngx_rtmp_exec_push_eval.*\)$/\/\/ \1/' \
     nginx_rtmp_module/ngx_rtmp_exec_module.c
-sed -i 's/static ngx_rtmp_eval_t \* ngx_rtmp_exec_pull_eval\[\]/static ngx_rtmp_eval_t * __attribute__((unused)) ngx_rtmp_exec_pull_eval[]/' \
+sed -i 's/^\(static ngx_rtmp_eval_t.*ngx_rtmp_exec_pull_eval.*\)$/\/\/ \1/' \
     nginx_rtmp_module/ngx_rtmp_exec_module.c
-sed -i 's/static ngx_rtmp_eval_t \* ngx_rtmp_exec_event_eval\[\]/static ngx_rtmp_eval_t * __attribute__((unused)) ngx_rtmp_exec_event_eval[]/' \
+sed -i 's/^\(static ngx_rtmp_eval_t.*ngx_rtmp_exec_event_eval.*\)$/\/\/ \1/' \
     nginx_rtmp_module/ngx_rtmp_exec_module.c
 
 # Исправление неиспользуемых переменных в ngx_rtmp_auto_push_module.c
