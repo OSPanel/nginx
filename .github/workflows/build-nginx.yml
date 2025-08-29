@@ -157,6 +157,6 @@ jobs:
           files: Release/${{ env.PKG_NAME }}
 
       - name: Cleanup Release dir
-          shell: pwsh
-          run: Remove-Item Release -Recurse -Force
+        shell: pwsh
+        run: Remove-Item Release -Recurse -Force
 
