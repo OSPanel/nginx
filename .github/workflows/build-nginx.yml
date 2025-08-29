@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       TAG:
-        description: 'Введите git tag/branch nginx (например: release-1.28.0, main). Оставьте пустым или "latest" для последнего.'
+        description: 'Введите git tag/branch nginx (например: release-1.28.0, 1.28.0, main). Оставьте пустым или "latest" для последнего.'
         required: false
         default: ''
         type: string
@@ -47,8 +47,7 @@ jobs:
             patch
             perl
             p7zip
-            pkgconf
-            mingw-w64-x86_64-gd
+            mingw-w64-x86_64-pkgconf
             mingw-w64-x86_64-libheif
             mingw-w64-x86_64-libavif
             mingw-w64-x86_64-aom
@@ -111,10 +110,42 @@ jobs:
           chmod +x ./nginx-build-msys2-new.sh
           ./nginx-build-msys2-new.sh
 
+      - name: Resolve package name
+        id: pkgname
+        run: |
+          # Попытка извлечь версию из входного TAG
+          RAW="${{ env.TAG }}"
+          VER=""
+          if [ -n "$RAW" ]; then
+            # Поддерживаем форматы: 1.28, 1.28.0, v1.28.0, release-1.28.0
+            if echo "$RAW" | grep -Eiq '^[a-z-]*v?[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
+              VER="$(echo "$RAW" | sed -E 's/^[^0-9]*v?([0-9]+\.[0-9]+(\.[0-9]+)?)$/\1/i')"
+            fi
+          fi
+
+          # Если TAG не дал версию — читаем, что записал build-скрипт
+          if [ -z "$VER" ] && [ -f "Release/.env" ]; then
+            set -a; . Release/.env; set +a
+            VER="${NGINX_VERSION:-}"
+          fi
+
+          # Финальное имя пакета
+          if [ -n "$VER" ]; then
+            PKG_NAME="nginx-${VER}.7z"
+          else
+            PKG_NAME="nginx-bin.7z"
+          fi
+
+          echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
+          echo "pkg_name=$PKG_NAME" >> $GITHUB_OUTPUT
+          echo "Resolved package name: $PKG_NAME"
+
       - name: Package nginx
+        env:
+          PKG_NAME: ${{ env.PKG_NAME }}
         run: |
           chmod +x ./nginx-package-msys2.sh
-          ./nginx-package-msys2.sh
+          PKG_NAME="${PKG_NAME}" ./nginx-package-msys2.sh
 
       - name: Upload artifacts (executables)
         uses: actions/upload-artifact@v4
@@ -125,9 +156,14 @@ jobs:
       - name: Upload artifacts (package)
         uses: actions/upload-artifact@v4
         with:
-          name: nginx-package
+          name: ${{ steps.pkgname.outputs.pkg_name }}
+          path: Release/${{ steps.pkgname.outputs.pkg_name }}
+
+      - name: Upload docs and configs (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: nginx-extra
           path: |
-            Release/nginx-bin.7z
             Release/docs/**
             Release/conf/**
             Release/html/**
