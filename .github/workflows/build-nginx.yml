@@ -1,0 +1,121 @@
+name: Build Nginx (MSYS2)
+
+on:
+  workflow_dispatch:
+    inputs:
+      TAG:
+        description: 'nginx git tag/branch (e.g. release-1.28.0). Leave empty for latest.'
+        required: false
+        default: ''
+  push:
+    paths:
+      - '.github/workflows/build-nginx.yml'
+      - 'nginx-build-msys2-new.sh'
+      - 'nginx-package-msys2.sh'
+      - 'nginx-*.patch'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          msystem: MINGW64
+          install: >
+            base-devel
+            mingw-w64-x86_64-toolchain
+            git
+            wget
+            curl
+            tar
+            xz
+            bzip2
+            patch
+            perl
+            p7zip
+            pkgconf
+            # Рантайм-зависимости, которые пакуем вместе с nginx (для image_filter/geoip и пр.)
+            mingw-w64-x86_64-gd
+            mingw-w64-x86_64-libheif
+            mingw-w64-x86_64-libavif
+            mingw-w64-x86_64-aom
+            mingw-w64-x86_64-dav1d
+            mingw-w64-x86_64-rav1e
+            mingw-w64-x86_64-libyuv
+            mingw-w64-x86_64-freetype
+            mingw-w64-x86_64-fontconfig
+            mingw-w64-x86_64-harfbuzz
+            mingw-w64-x86_64-brotli
+            mingw-w64-x86_64-libpng
+            mingw-w64-x86_64-libtiff
+            mingw-w64-x86_64-openjpeg2
+            mingw-w64-x86_64-openh264
+            mingw-w64-x86_64-x265
+            mingw-w64-x86_64-kvazaar
+            mingw-w64-x86_64-libwebp
+            mingw-w64-x86_64-libimagequant
+            mingw-w64-x86_64-jbigkit
+            mingw-w64-x86_64-libdeflate
+            mingw-w64-x86_64-lerc
+            mingw-w64-x86_64-xz
+            mingw-w64-x86_64-zstd
+            mingw-w64-x86_64-expat
+            mingw-w64-x86_64-glib2
+            mingw-w64-x86_64-pcre2
+            mingw-w64-x86_64-geoip
+            mingw-w64-x86_64-libmaxminddb
+
+      - name: Show toolchain versions
+        run: |
+          gcc --version
+          g++ --version
+          make --version
+          perl --version
+          7z
+
+      - name: Prepare environment
+        run: |
+          echo "TAG=${{ github.event.inputs.TAG }}" >> $GITHUB_ENV
+
+      - name: Build nginx (Release + Debug)
+        env:
+          TAG: ${{ github.event.inputs.TAG }}
+        run: |
+          chmod +x ./nginx-build-msys2-new.sh
+          ./nginx-build-msys2-new.sh
+
+      - name: Package nginx
+        run: |
+          chmod +x ./nginx-package-msys2.sh
+          ./nginx-package-msys2.sh
+
+      - name: Upload artifacts (executables)
+        uses: actions/upload-artifact@v4
+        with:
+          name: nginx-executables
+          path: |
+            Release/*.exe
+
+      - name: Upload artifacts (package)
+        uses: actions/upload-artifact@v4
+        with:
+          name: nginx-package
+          path: |
+            Release/nginx-bin.7z
+            Release/docs/**
+            Release/conf/**
+            Release/html/**
+            Release/contrib/**
