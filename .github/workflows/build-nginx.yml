@@ -177,10 +177,11 @@ jobs:
           else
             git clone --depth=1 --branch "$TAG" https://github.com/nginx/nginx.git
           fi
+          cd nginx
 
           git checkout -b patch || git checkout patch
           mkdir -p docs
-          git am -3 nginx-*.patch || true
+          git am -3 ../nginx-*.patch || true
 
           configure_args=(
             --sbin-path=nginx.exe
@@ -211,8 +212,8 @@ jobs:
             --with-mail
             --with-stream
             --with-poll_module
-            "--with-zlib=$ZLIB"
-            "--with-pcre=$PCRE"
+            "--with-zlib=../$ZLIB"
+            "--with-pcre=../$PCRE"
             --with-pcre-jit
             --with-http_geoip_module
             --with-stream_geoip_module
@@ -230,10 +231,10 @@ jobs:
 
           version="$(grep NGINX_VERSION src/core/nginx.h | grep -oP '(\\d+\\.)+\\d+')"
           machine_str="$(gcc -dumpmachine | cut -d'-' -f1)"
-          mv -f objs/nginx.exe "Release/nginx-${version}-${machine_str}.exe"
-          echo "NGINX_VERSION=${version}" > Release/.env
+          mv -f objs/nginx.exe "../Release/nginx-${version}-${machine_str}.exe"
+          echo "NGINX_VERSION=${version}" > ../Release/.env
 
-
+          cd ..
 
           ############################
           # === УПАКОВКА ===
@@ -256,11 +257,8 @@ jobs:
             Release/docs/**
             Release/conf/**
             Release/html/**
-            Release/contrib/**
-
-      - name: Upload package
+            Release/contrib/**      - name: Upload package
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PKG_NAME }}
-          path: Release/${{ env.PKG_NAME }}
-
+          path: Release/${{ env.PKG_NAME 
