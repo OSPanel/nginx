@@ -45,6 +45,11 @@ GIT_USER_EMAIL="$(git config --global user.email || echo "")"
 mkdir -p "${RELEASE_DIR}"
 mkdir -p "${DOCS_DIR}"
 
+# === Клонируем последние версии master + сабмодули ===
+git clone --branch master --depth=1 --recursive https://github.com/google/ngx_brotli.git nginx_brotli_module
+git clone --branch master --depth=1 --recursive https://github.com/aperezdc/ngx-fancyindex.git nginx_fancyindex
+git clone --branch master --depth=1 --recursive https://github.com/leev/ngx_http_geoip2_module.git nginx_http_geoip2_module
+
 # === Получение версий зависимостей ===
 ZLIB="$(fetch_latest_version 'https://zlib.net/' 'zlib-(\d+\.)+\d+' 'zlib-1.3.1')"
 PCRE="$(fetch_latest_version 'https://sourceforge.net/projects/pcre/rss?path=/pcre/' 'pcre-(\d+\.)+\d+' 'pcre-8.45')"
