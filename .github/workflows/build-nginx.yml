@@ -141,7 +141,7 @@ jobs:
           PKG_NAME: ${{ env.PKG_NAME }}
         run: |
           chmod +x ./package.sh
-          PKG_NAME="${PKG_NAME}" ./package.sh
+          ./package.sh
 
       - name: Generate release tag
         id: gen_tag
