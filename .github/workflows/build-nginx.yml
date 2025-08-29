@@ -143,9 +143,20 @@ jobs:
           chmod +x ./package.sh
           PKG_NAME="${PKG_NAME}" ./package.sh
 
-      - name: Upload artifacts (package)
-        uses: actions/upload-artifact@v4
+      - name: Generate release tag
+        id: gen_tag
+        shell: pwsh
+        run: |
+          echo "tag=${VER}" >> $env:GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
         with:
-          name: ${{ steps.pkgname.outputs.pkg_name }}
-          path: Release/${{ steps.pkgname.outputs.pkg_name }}
+          tag_name: ${{ steps.gen_tag.outputs.tag }}
+          body: "https://nginx.org/en/CHANGES"
+          files: Release/**
+
+      - name: Clean up release folder
+        run: |
+          Remove-Item Release -Recurse -Force
 
