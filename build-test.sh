@@ -51,7 +51,6 @@ git clone --branch master --depth=1 --recursive https://github.com/aperezdc/ngx-
 git clone --branch master --depth=1 --recursive https://github.com/leev/ngx_http_geoip2_module.git nginx_http_geoip2_module
 git clone --branch master --depth=1 --recursive https://github.com/openresty/echo-nginx-module.git echo-nginx-module
 git clone --branch master --depth=1 --recursive https://github.com/openresty/headers-more-nginx-module.git headers-more-nginx-module
-git clone --branch master --depth=1 --recursive https://github.com/openresty/set-misc-nginx-module.git set-misc-nginx-module
 
 # Патчим geoip2: заменяем во всех файлах нужную строку
 find nginx_http_geoip2_module -type f -exec sed -i \
@@ -158,7 +157,6 @@ configure_args=(
   --add-dynamic-module=../nginx_fancyindex
   --add-dynamic-module=../echo-nginx-module
   --add-dynamic-module=../headers-more-nginx-module
-  --add-dynamic-module=../set-misc-nginx-module
   --with-ld-opt="-Wl,--gc-sections,--build-id=none"
   --prefix=
 )
