@@ -167,7 +167,7 @@ configure_args=(
 log "Конфигурация сборки (Release)"
 auto/configure "${configure_args[@]}" \
   --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -pipe' \
-  --with-openssl-opt='-DFD_SETSIZE=32768 no-tests -D_WIN32_WINNT=0x0601'
+  --with-openssl-opt='-DFD_SETSIZE=32768 enable-camellia no-idea no-mdc2 no-tests -D_WIN32_WINNT=0x0601'
 
 log "Сборка nginx (Release)"
 make -j"$(nproc)"
