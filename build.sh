@@ -153,7 +153,7 @@ configure_args=(
   --add-module=../nginx_brotli_module
   --add-module=../nginx_http_geoip2_module
   --add-module=../nginx_fancyindex
-  --with-ld-opt="-Wl,--gc-sections,--build-id=none -static-libgcc -static-libstdc++"
+  --with-ld-opt="-Wl,--gc-sections,--build-id=none"
   --prefix=
   --with-http_v2_module
   "--with-openssl=${OPENSSL}"
