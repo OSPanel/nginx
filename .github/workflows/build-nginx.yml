@@ -34,12 +34,7 @@ jobs:
             mingw-w64-x86_64-toolchain
             git
             wget
-            curl
-            tar
-            xz
-            bzip2
             patch
-            perl
             p7zip
             pkgconf
             openssl-devel
@@ -53,18 +48,18 @@ jobs:
             mingw-w64-x86_64-dav1d
             mingw-w64-x86_64-rav1e
             mingw-w64-x86_64-libyuv
+            mingw-w64-x86_64-harfbuzz
             mingw-w64-x86_64-freetype
             mingw-w64-x86_64-fontconfig
-            mingw-w64-x86_64-harfbuzz
             mingw-w64-x86_64-brotli
             mingw-w64-x86_64-libpng
-            mingw-w64-x86_64-libtiff
             mingw-w64-x86_64-libxslt
             mingw-w64-x86_64-openjpeg2
             mingw-w64-x86_64-openh264
             mingw-w64-x86_64-x265
             mingw-w64-x86_64-kvazaar
             mingw-w64-x86_64-libwebp
+            mingw-w64-x86_64-libtiff
             mingw-w64-x86_64-libimagequant
             mingw-w64-x86_64-jbigkit
             mingw-w64-x86_64-libdeflate

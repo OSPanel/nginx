@@ -153,7 +153,7 @@ configure_args=(
   --add-module=../nginx_brotli_module
   --add-module=../nginx_http_geoip2_module
   --add-module=../nginx_fancyindex
-  --with-ld-opt="-Wl,--gc-sections,--build-id=none"
+  --with-ld-opt="-Wl,--gc-sections,--build-id=none -static -static-libgcc -static-libstdc++"
   --prefix=
   --with-http_v2_module
   "--with-openssl=${OPENSSL}"
@@ -167,7 +167,7 @@ configure_args=(
 log "Конфигурация сборки (Release)"
 auto/configure "${configure_args[@]}" \
   --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -pipe' \
-  --with-openssl-opt='-DFD_SETSIZE=32768 enable-camellia no-idea no-mdc2 no-tests -D_WIN32_WINNT=0x0601'
+  --with-openssl-opt='-DFD_SETSIZE=32768 enable-camellia no-idea no-mdc2 no-shared no-tests -D_WIN32_WINNT=0x0601'
 
 log "Сборка nginx (Release)"
 make -j"$(nproc)"
@@ -185,7 +185,7 @@ log "Сборка с отладкой (Debug)"
 configure_args+=(--with-debug)
 auto/configure "${configure_args[@]}" \
   --with-cc-opt='-DFD_SETSIZE=32768 -O2 -fno-strict-aliasing -pipe' \
-  --with-openssl-opt='-DFD_SETSIZE=32768 no-tests -D_WIN32_WINNT=0x0601'
+  --with-openssl-opt='-DFD_SETSIZE=32768 no-shared no-tests -D_WIN32_WINNT=0x0601'
 
 make -j"$(nproc)"
 mv -f /d/a/nginx/nginx/nginx/objs/nginx.exe "${RELEASE_DIR}/nginx-debug.exe"
