@@ -154,7 +154,7 @@ configure_args=(
   --add-module=../nginx_brotli_module
   --add-module=../nginx_http_geoip2_module
   --add-module=../nginx_fancyindex
-  --with-ld-opt="-Wl,--gc-sections,--build-id=none -static -static-libgcc -static-libstdc++"
+  --with-ld-opt="-Wl,--gc-sections,--build-id=none -static-libgcc -static-libstdc++"
   --prefix=
 )
 
