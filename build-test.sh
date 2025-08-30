@@ -49,8 +49,6 @@ mkdir -p "${DOCS_DIR}"
 git clone --branch master --depth=1 --recursive https://github.com/google/ngx_brotli.git nginx_brotli_module
 git clone --branch master --depth=1 --recursive https://github.com/aperezdc/ngx-fancyindex.git nginx_fancyindex
 git clone --branch master --depth=1 --recursive https://github.com/leev/ngx_http_geoip2_module.git nginx_http_geoip2_module
-git clone --branch master --depth=1 --recursive https://github.com/openresty/echo-nginx-module.git echo-nginx-module
-git clone --branch master --depth=1 --recursive https://github.com/openresty/headers-more-nginx-module.git headers-more-nginx-module
 
 # Патчим geoip2: заменяем во всех файлах нужную строку
 find nginx_http_geoip2_module -type f -exec sed -i \
@@ -155,8 +153,6 @@ configure_args=(
   --add-module=../nginx_brotli_module
   --add-module=../nginx_http_geoip2_module
   --add-module=../nginx_fancyindex
-  --add-module=../echo-nginx-module
-  --add-module=../headers-more-nginx-module
   --with-ld-opt="-Wl,--gc-sections,--build-id=none"
   --prefix=
 )
