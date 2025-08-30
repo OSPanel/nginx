@@ -81,13 +81,7 @@ cd nginx || exit 1
 git checkout -b patch || git checkout patch
 mkdir -p docs
 
-# Отключение патчей, если utf16 поддерживается
-if grep -q 'ngx_utf16_to_utf8' src/os/win32/ngx_files.c; then
-  log "UTF-16 уже поддерживается, удаление старых патчей"
-  rm -f ../nginx-000{2..6}-*.patch || true
-fi
-
-git am -3 ../nginx-*.patch || true
+git am -3 ../*.patch || true
 
 # === Загрузка зависимостей ===
 download_and_extract "https://zlib.net/${ZLIB}.tar.xz" || \
