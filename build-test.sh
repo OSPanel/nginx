@@ -152,11 +152,11 @@ configure_args=(
   "--with-zlib=${ZLIB}"
   --with-http_geoip_module
   --with-stream_geoip_module
-  --add-dynamic-module=../nginx_brotli_module
-  --add-dynamic-module=../nginx_http_geoip2_module
-  --add-dynamic-module=../nginx_fancyindex
-  --add-dynamic-module=../echo-nginx-module
-  --add-dynamic-module=../headers-more-nginx-module
+  --add-module=../nginx_brotli_module
+  --add-module=../nginx_http_geoip2_module
+  --add-module=../nginx_fancyindex
+  --add-module=../echo-nginx-module
+  --add-module=../headers-more-nginx-module
   --with-ld-opt="-Wl,--gc-sections,--build-id=none"
   --prefix=
 )
