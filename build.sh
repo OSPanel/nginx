@@ -141,7 +141,6 @@ configure_args=(
   --with-http_random_index_module
   --with-http_secure_link_module
   --with-http_slice_module
-  --with-http_xslt_module
   --with-stream_realip_module
   --with-mail
   --with-stream
