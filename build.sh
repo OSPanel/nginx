@@ -142,8 +142,15 @@ configure_args=(
   --with-http_secure_link_module
   --with-http_slice_module
   --with-stream_realip_module
+  --with-http_xslt_module
+  --with-http_perl_module
+  --with-http_degradation_module
   --with-mail
+  --with-mail_pop3_module
+  --with-mail_imap_module
+  --with-mail_smtp_module
   --with-stream
+  --with-stream_set_module
   --with-poll_module
   "--with-pcre=${WITH_PCRE}"
   --with-pcre-jit
@@ -153,9 +160,13 @@ configure_args=(
   --add-module=../nginx_brotli_module
   --add-module=../nginx_http_geoip2_module
   --add-module=../nginx_fancyindex
+  --add-module=../nginx_fancyindex
+  --add-module=../set-misc-nginx-module
   --with-ld-opt="-Wl,--gc-sections,--build-id=none"
   --prefix=
   --with-http_v2_module
+  --with-http_v2_hpack_enc
+  --with-http_v3_module
   "--with-openssl=${OPENSSL}"
   --with-http_ssl_module
   --with-mail_ssl_module
