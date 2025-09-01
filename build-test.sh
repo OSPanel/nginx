@@ -110,7 +110,8 @@ if [[ -f "${ZLIB}/README" ]]; then
   sed -ne '/^ (C) 1995-20/,/^  jloup@gzip\.org/p' "${ZLIB}/README" > "${DOCS_DIR}/zlib.LICENSE" || true
   touch -r "${ZLIB}/README" "${DOCS_DIR}/zlib.LICENSE" || true
 fi
-
+export LUAJIT_INC=/mingw64/include/luajit-2.1
+export LUAJIT_LIB=/mingw64/lib
 # === Конфигурация сборки ===
 configure_args=(
   --sbin-path=nginx.exe
