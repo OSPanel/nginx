@@ -37,6 +37,7 @@ jobs:
             patch
             p7zip
             pkgconf
+            gnulib-l10n
             openssl-devel
             libxslt-devel
             libxml2-devel
