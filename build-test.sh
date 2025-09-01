@@ -46,7 +46,6 @@ mkdir -p "${RELEASE_DIR}"
 mkdir -p "${DOCS_DIR}"
 
 # === Клонируем последние версии master + сабмодули ===
-git clone --branch main --depth=1 --recursive https://github.com/nginx/nginx-prometheus-exporter.git nginx_prometheus_exporter
 git clone --branch master --depth=1 --recursive https://github.com/owasp-modsecurity/ModSecurity-nginx.git modsecurity_nginx
 git clone --branch master --depth=1 --recursive https://github.com/openresty/lua-nginx-module.git lua_nginx_module
 
@@ -147,7 +146,6 @@ configure_args=(
   "--with-zlib=${ZLIB}"
   --with-http_geoip_module
   --with-stream_geoip_module
-  --add-module=../nginx_prometheus_exporter
   --add-module=../modsecurity_nginx
   --with-ld-opt="-Wl,--gc-sections,--build-id=none"
   --prefix=
