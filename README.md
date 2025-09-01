@@ -1,4 +1,4 @@
-This repository provides a maintained Nginx x64 build system for Windows. It is inspired by “https://github.com/myfreeer/nginx-build-msys2” and includes necessary adjustments for automated builds via GitHub Actions.
+This repository provides an x64 Nginx build for Windows. It is inspired by [myfreeer/nginx-build-msys2](https://github.com/myfreeer/nginx-build-msys2) and includes necessary adjustments for automated builds via GitHub Actions. 
 
 Highlights:
 
