@@ -37,14 +37,7 @@ jobs:
             patch
             p7zip
             pkgconf
-            gnulib-l10n
             openssl-devel
-            libxslt-devel
-            libxml2-devel
-            mingw-w64-x86_64-lua51
-            mingw-w64-x86_64-luajit
-            mingw-w64-x86_64-libxml2
-            mingw-w64-x86_64-libxslt
             mingw-w64-x86_64-libiconv
             mingw-w64-x86_64-libjpeg
             mingw-w64-x86_64-xpm-nox
