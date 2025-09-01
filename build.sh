@@ -150,7 +150,6 @@ configure_args=(
   --with-mail_imap_module
   --with-mail_smtp_module
   --with-stream
-  --with-stream_set_module
   --with-poll_module
   "--with-pcre=${WITH_PCRE}"
   --with-pcre-jit
