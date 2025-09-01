@@ -146,9 +146,6 @@ configure_args=(
   --with-http_perl_module
   --with-http_degradation_module
   --with-mail
-  --with-mail_pop3_module
-  --with-mail_imap_module
-  --with-mail_smtp_module
   --with-stream
   --with-poll_module
   "--with-pcre=${WITH_PCRE}"
