@@ -146,7 +146,7 @@ configure_args=(
   "--with-zlib=${ZLIB}"
   --with-http_geoip_module
   --with-stream_geoip_module
-  --add-module=../modsecurity_nginx
+  --add-module=../lua_nginx_module
   --with-ld-opt="-Wl,--gc-sections,--build-id=none"
   --prefix=
 )
