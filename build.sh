@@ -143,7 +143,6 @@ configure_args=(
   --with-http_slice_module
   --with-stream_realip_module
   --with-http_xslt_module
-  --with-http_perl_module
   --with-http_degradation_module
   --with-mail
   --with-stream
