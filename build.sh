@@ -166,7 +166,7 @@ configure_args=(
 # === Первая сборка (Release) ===
 log "Конфигурация сборки (Release)"
 auto/configure "${configure_args[@]}" \
-  --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -fstack-protector-strong -fno-omit-frame-pointer -pipe' \
+  --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -pipe' \
   --with-openssl-opt='-DFD_SETSIZE=32768 enable-ec_nistp_64_gcc_128 enable-camellia no-weak-ssl-ciphers no-ssl3 no-ssl3-method no-comp no-rc4, no-rc5, no-idea, no-mdc2, no-seed no-shared no-tests -D_WIN32_WINNT=0x0A00'
 
 log "Сборка nginx (Release)"
