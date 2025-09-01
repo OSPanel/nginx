@@ -111,7 +111,7 @@ if [[ -f "${ZLIB}/README" ]]; then
   touch -r "${ZLIB}/README" "${DOCS_DIR}/zlib.LICENSE" || true
 fi
 export LUAJIT_INC=/mingw64/include/luajit-2.1
-export LUAJIT_LIB=/mingw64/lib
+export LUAJIT_LIB=/mingw64/lib;/mingw64/lib/lua/5.1
 # === Конфигурация сборки ===
 configure_args=(
   --sbin-path=nginx.exe
