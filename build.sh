@@ -184,7 +184,7 @@ echo "NGINX_VERSION=${version}" > "${RELEASE_DIR}/.env"
 log "Сборка с отладкой (Debug)"
 configure_args+=(--with-debug)
 auto/configure "${configure_args[@]}" \
-  --with-cc-opt='-DFD_SETSIZE=32768 -O0 -g3 -fno-omit-frame-pointer -fno-strict-aliasing -pipe' \
+  --with-cc-opt='-DFD_SETSIZE=32768 -O2 -fno-omit-frame-pointer -fno-strict-aliasing -pipe' \
   --with-openssl-opt='-DFD_SETSIZE=32768 no-shared no-tests -D_WIN32_WINNT=0x0601'
 
 make -j"$(nproc)"
