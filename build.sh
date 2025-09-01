@@ -165,7 +165,6 @@ configure_args=(
   --with-ld-opt="-Wl,--gc-sections,--build-id=none"
   --prefix=
   --with-http_v2_module
-  --with-http_v2_hpack_enc
   --with-http_v3_module
   "--with-openssl=${OPENSSL}"
   --with-http_ssl_module
