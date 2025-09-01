@@ -46,7 +46,7 @@ mkdir -p "${RELEASE_DIR}"
 mkdir -p "${DOCS_DIR}"
 
 # === Клонируем последние версии master + сабмодули ===
-git clone --branch master --depth=1 --recursive https://github.com/nginx/nginx-prometheus-exporter.git nginx_prometheus_exporter
+git clone --branch main --depth=1 --recursive https://github.com/nginx/nginx-prometheus-exporter.git nginx_prometheus_exporter
 git clone --branch master --depth=1 --recursive https://github.com/owasp-modsecurity/ModSecurity-nginx.git modsecurity_nginx
 git clone --branch master --depth=1 --recursive https://github.com/openresty/lua-nginx-module.git lua_nginx_module
 
