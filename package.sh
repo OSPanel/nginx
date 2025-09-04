@@ -89,7 +89,7 @@ remove_system_dlls() {
 remove_system_dlls
 
 pushd "${TARGET_DIR}" >/dev/null
-7z a -mx9 "$PKG_NAME" nginx*.exe *.dll contrib docs conf html temp logs || {
+7z a -tzip -mx=9 "$PKG_NAME" nginx*.exe *.dll contrib docs conf html temp logs || {
   warn "Архивация завершилась с предупреждением или не все файлы найдены"
 }
 popd >/dev/null
