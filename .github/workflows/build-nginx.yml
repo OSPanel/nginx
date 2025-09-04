@@ -126,9 +126,9 @@ jobs:
 
           # Финальное имя пакета
           if [ -n "$VER" ]; then
-            PKG_NAME="nginx-${VER}.7z"
+            PKG_NAME="nginx-${VER}.zip"
           else
-            PKG_NAME="nginx-bin.7z"
+            PKG_NAME="nginx-bin.zip"
           fi
 
           echo "PKG_NAME=${PKG_NAME}" >> $GITHUB_ENV
