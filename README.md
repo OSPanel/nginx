@@ -35,14 +35,7 @@
 | `stream_geoip_module` | 🌐 GeoIP for TCP/UDP streams |
 | `stream_realip_module` | 📡 Real IP for streams |
 
-### 📈 Performance Metrics  
-
-| Metric | Value | Compared to Original |
-|--------|-------|----------------------|
-| 🚀 Build speed | ~15 min | +25% faster |
-| 📦 Binary size | ~8MB | Similar |
-| 🔧 Extra modules | 19 | +19 (3 third-party) |
-| 💾 Memory usage | ~50MB | -10% optimized |
+📦 Extra modules 19 (3 third-party)
 
 ## 📋 System Requirements  
 
