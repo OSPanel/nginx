@@ -9,9 +9,7 @@
 
 **High-performance Nginx build for Windows x64 with extra modules**  
 
-## 📦 Included Modules  
-
-### 🚀 Extra Modules: 19 (3 third-party)
+## 📦 Extra Modules: 19 (3 third-party)
 
 | Module | Description |
 |--------|-------------|
