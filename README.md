@@ -11,7 +11,7 @@
 
 ## 📦 Included Modules  
 
-### 🌐 HTTP Modules  
+### 🚀 Extra Modules   
 
 | Module | Description |
 |--------|-------------|
@@ -28,11 +28,6 @@
 | `http_realip_module` | 🌐 Get the real client IP |
 | `http_secure_link_module` | 🔗 Secure links |
 | `http_slice_module` | ⚡ Large file caching by slices |
-
-### 🚀 Extra Modules  
-
-| Module | Description |
-|--------|-------------|
 | `nginx_brotli_module` | 🗜️ Brotli advanced compression |
 | `nginx_fancyindex` | 🎨 Fancy directory listings |
 | `nginx_http_geoip2_module` | 🗺️ Modern GeoIP (MaxMind) |
@@ -46,7 +41,7 @@
 |--------|-------|----------------------|
 | 🚀 Build speed | ~15 min | +25% faster |
 | 📦 Binary size | ~8MB | Similar |
-| 🔧 Extra modules | 16 | +6 third-party |
+| 🔧 Extra modules | 19 | +19 (3 third-party) |
 | 💾 Memory usage | ~50MB | -10% optimized |
 
 ## 📋 System Requirements  
