@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       TAG:
-        description: 'Введите git tag/branch nginx (например: 1.28.0, 1.28.0):'
+        description: 'Enter nginx git tag/branch (e.g., 1.28.0, 1.28.1):'
         required: false
         default: ''
         type: string
@@ -108,23 +108,23 @@ jobs:
       - name: Resolve package name
         id: pkgname
         run: |
-          # Попытка извлечь версию из входного TAG
+          # Try to extract version from input TAG
           RAW="${{ env.TAG }}"
           VER=""
           if [ -n "$RAW" ]; then
-            # Поддерживаем форматы: 1.28, 1.28.0, v1.28.0, release-1.28.0
+            # Supported formats: 1.28, 1.28.0, v1.28.0, release-1.28.0
             if echo "$RAW" | grep -Eiq '^[a-z-]*v?[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
               VER="$(echo "$RAW" | sed -E 's/^[^0-9]*v?([0-9]+\.[0-9]+(\.[0-9]+)?)$/\1/i')"
             fi
           fi
 
-          # Если TAG не дал версию — читаем, что записал build-скрипт
+          # If TAG didn’t give us a version — read build script output
           if [ -z "$VER" ] && [ -f "Release/.env" ]; then
             set -a; . Release/.env; set +a
             VER="${NGINX_VERSION:-}"
           fi
 
-          # Финальное имя пакета
+          # Final package name
           if [ -n "$VER" ]; then
             PKG_NAME="nginx-${VER}.zip"
           else
@@ -154,4 +154,3 @@ jobs:
       - name: Cleanup Release dir
         shell: pwsh
         run: Remove-Item Release -Recurse -Force
-
