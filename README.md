@@ -11,7 +11,7 @@
 
 ## 📦 Included Modules  
 
-### 🚀 Extra Modules   
+### 🚀 Extra Modules: 19 (3 third-party)
 
 | Module | Description |
 |--------|-------------|
@@ -34,8 +34,6 @@
 | `poll_module` | ⚡ Optimized event handling |
 | `stream_geoip_module` | 🌐 GeoIP for TCP/UDP streams |
 | `stream_realip_module` | 📡 Real IP for streams |
-
-📦 Extra modules 19 (3 third-party)
 
 ## 📋 System Requirements  
 
