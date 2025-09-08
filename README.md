@@ -59,10 +59,6 @@
 - 🏗️ **[MSYS2](https://www.msys2.org/)** - for providing a great build environment for Windows  
 - 🌟 **[Nginx](https://nginx.org/)** - for the awesome web server  
 
-## 📜 License  
-
-This project is licensed under the **BSD 2-Clause** license – see [LICENSE](LICENSE) for details.  
-
 ---
 
 **Made with ❤️ for the Windows developer community**
