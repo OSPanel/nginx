@@ -1,68 +1,66 @@
 # 🚀 Nginx x64 Windows Build
 
-
-
 ![Nginx](https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white)
 ![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/github%20actions-%232671E5.svg?style=for-the-badge&logo=githubactions&logoColor=white)
 ![License](https://img.shields.io/badge/License-BSD%202--Clause-blue.svg?style=for-the-badge)
 
-**Высокопроизводительная сборка Nginx для Windows x64 с дополнительными модулями**
+**High-performance Nginx build for Windows x64 with extra modules**  
 
-## 📦 Включенные модули
+## 📦 Included Modules  
 
-### 🌐 HTTP модули
+### 🌐 HTTP Modules  
 
-| Модуль | Описание |
-|--------|----------|
-| `http_addition_module` | 📝 Добавление контента до и после ответа |
-| `http_auth_request_module` | 🔐 Аутентификация через внешний сервис |
-| `http_dav_module` | 📂 WebDAV методы |
-| `http_flv_module` | 🎬 Потоковое воспроизведение FLV |
-| `http_geoip_module` | 🌍 Геолокация по IP (legacy) |
-| `http_gunzip_module` | 📤 Декомпрессия для клиентов |
-| `http_gzip_static_module` | 🗜️ Предварительно сжатые файлы |
-| `http_image_filter_module` | 🖼️ Обработка изображений |
-| `http_mp4_module` | 🎥 Потоковое воспроизведение MP4 |
-| `http_random_index_module` | 🎲 Случайный индексный файл |
-| `http_realip_module` | 🌐 Получение реального IP клиента |
-| `http_secure_link_module` | 🔗 Защищенные ссылки |
-| `http_slice_module` | ⚡ Кеширование больших файлов частями |
+| Module | Description |
+|--------|-------------|
+| `http_addition_module` | 📝 Add content before and after a response |
+| `http_auth_request_module` | 🔐 Authentication via external service |
+| `http_dav_module` | 📂 WebDAV methods |
+| `http_flv_module` | 🎬 FLV streaming |
+| `http_geoip_module` | 🌍 GeoIP legacy support |
+| `http_gunzip_module` | 📤 Decompression for clients |
+| `http_gzip_static_module` | 🗜️ Pre-compressed files |
+| `http_image_filter_module` | 🖼️ Image processing |
+| `http_mp4_module` | 🎥 MP4 streaming |
+| `http_random_index_module` | 🎲 Random index file |
+| `http_realip_module` | 🌐 Get the real client IP |
+| `http_secure_link_module` | 🔗 Secure links |
+| `http_slice_module` | ⚡ Large file caching by slices |
 
-### 🚀 Дополнительные модули
+### 🚀 Extra Modules  
 
-| Модуль | Описание |
-|--------|----------|
-| `nginx_brotli_module` | 🗜️ Продвинутое сжатие Brotli |
-| `nginx_fancyindex` | 🎨 Красивые страницы каталогов |
-| `nginx_http_geoip2_module` | 🗺️ Современная геолокация (MaxMind) |
-| `poll_module` | ⚡ Оптимизированная обработка событий |
-| `stream_geoip_module` | 🌐 Геолокация для TCP/UDP |
-| `stream_realip_module` | 📡 Реальный IP для потоков |
+| Module | Description |
+|--------|-------------|
+| `nginx_brotli_module` | 🗜️ Brotli advanced compression |
+| `nginx_fancyindex` | 🎨 Fancy directory listings |
+| `nginx_http_geoip2_module` | 🗺️ Modern GeoIP (MaxMind) |
+| `poll_module` | ⚡ Optimized event handling |
+| `stream_geoip_module` | 🌐 GeoIP for TCP/UDP streams |
+| `stream_realip_module` | 📡 Real IP for streams |
 
-### 📈 Метрики производительности
+### 📈 Performance Metrics  
 
-| Метрика | Значение | Сравнение с оригиналом |
-|---------|----------|------------------------|
-| 🚀 Скорость сборки | ~15 мин | +25% быстрее |
-| 📦 Размер бинарника | ~8MB | Аналогично |
-| 🔧 Количество доп. модулей | 16 | +6 сторонних |
-| 💾 Использование памяти | ~50MB | -10% оптимизация |
+| Metric | Value | Compared to Original |
+|--------|-------|----------------------|
+| 🚀 Build speed | ~15 min | +25% faster |
+| 📦 Binary size | ~8MB | Similar |
+| 🔧 Extra modules | 16 | +6 third-party |
+| 💾 Memory usage | ~50MB | -10% optimized |
 
-## 📋 Системные требования
+## 📋 System Requirements  
 
-**💻 Операционная система:**  Windows 10/11 x64 / Windows Server 2019+ x64
+**💻 Operating System:**  Windows 10/11 x64 / Windows Server 2019+ x64  
 
-## 🙏 Благодарности
+## 🙏 Acknowledgments  
 
-- 💝 **[myfreeer/nginx-build-msys2](https://github.com/myfreeer/nginx-build-msys2)** - за оригинальные скрипты сборки
-- 🏗️ **[MSYS2](https://www.msys2.org/)** - за отличную среду сборки для Windows
-- 🌟 **[Nginx](https://nginx.org/)** - за потрясающий веб-сервер
+- 💝 **[myfreeer/nginx-build-msys2](https://github.com/myfreeer/nginx-build-msys2)** - for the original build scripts  
+- 🏗️ **[MSYS2](https://www.msys2.org/)** - for providing a great build environment for Windows  
+- 🌟 **[Nginx](https://nginx.org/)** - for the awesome web server  
 
-## 📜 Лицензия
+## 📜 License  
 
-Этот проект распространяется под лицензией **BSD 2-Clause** - подробности в файле [LICENSE](LICENSE).
+This project is licensed under the **BSD 2-Clause** license – see [LICENSE](LICENSE) for details.  
 
 ---
 
-**Сделано с ❤️ для сообщества Windows разработчиков**
+**Made with ❤️ for the Windows developer community**
