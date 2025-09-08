@@ -1,4 +1,4 @@
-[![ru](https://img.shields.io/badge/lang-ru-green.svg)]([https://github.com/OSPanel/nginx/blob/main/README.ru.md](https://github.com/OSPanel/nginx/blob/main/README.ru.md))
+[![ru](https://img.shields.io/badge/lang-ru-green.svg)](https://github.com/OSPanel/nginx/blob/main/README.ru.md)
 
 # 🚀 Nginx x64 Windows Build
 
