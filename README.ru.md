@@ -1,3 +1,5 @@
+[![en](https://img.shields.io/badge/lang-en-green.svg)](https://github.com/OSPanel/nginx/blob/main/README.md)
+
 # 🚀 Nginx x64 Windows Build
 
 ![Nginx](https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white)
