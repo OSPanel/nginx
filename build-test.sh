@@ -46,9 +46,14 @@ mkdir -p "${RELEASE_DIR}"
 mkdir -p "${DOCS_DIR}"
 
 # === Клонируем последние версии master + сабмодули ===
-git clone --branch master --depth=1 --recursive https://github.com/owasp-modsecurity/ModSecurity-nginx.git modsecurity_nginx
-git clone --branch master --depth=1 --recursive https://github.com/openresty/lua-nginx-module.git lua_nginx_module
+git clone --branch master --depth=1 --recursive https://github.com/google/ngx_brotli.git nginx_brotli_module
+git clone --branch master --depth=1 --recursive https://github.com/aperezdc/ngx-fancyindex.git nginx_fancyindex
+git clone --branch master --depth=1 --recursive https://github.com/leev/ngx_http_geoip2_module.git nginx_http_geoip2_module
+git clone --branch master --depth=1 --recursive https://github.com/nginx/nginx-acme.git nginx_http_acme_module
 
+# Патчим geoip2: заменяем во всех файлах нужную строку
+find nginx_http_geoip2_module -type f -exec sed -i \
+    's/ngx_file_info(database->mmdb.filename/ngx_file_info((u_char *) database->mmdb.filename/g' {} +
 
 # === Получение версий зависимостей ===
 ZLIB="$(fetch_latest_version 'https://zlib.net/' 'zlib-(\d+\.)+\d+' 'zlib-1.3.1')"
@@ -110,8 +115,7 @@ if [[ -f "${ZLIB}/README" ]]; then
   sed -ne '/^ (C) 1995-20/,/^  jloup@gzip\.org/p' "${ZLIB}/README" > "${DOCS_DIR}/zlib.LICENSE" || true
   touch -r "${ZLIB}/README" "${DOCS_DIR}/zlib.LICENSE" || true
 fi
-export LUAJIT_INC=/mingw64/include/luajit-2.1
-export LUAJIT_LIB=/mingw64/lib:/mingw64/lib/lua/5.1
+
 # === Конфигурация сборки ===
 configure_args=(
   --sbin-path=nginx.exe
@@ -147,15 +151,25 @@ configure_args=(
   "--with-zlib=${ZLIB}"
   --with-http_geoip_module
   --with-stream_geoip_module
-  --add-module=../lua_nginx_module
+  --add-module=../nginx_brotli_module
+  --add-module=../nginx_http_geoip2_module
+  --add-module=../nginx_fancyindex
+  --add-module=../nginx_http_acme_module
   --with-ld-opt="-Wl,--gc-sections,--build-id=none"
   --prefix=
+  --with-http_v2_module
+  "--with-openssl=${OPENSSL}"
+  --with-http_ssl_module
+  --with-mail_ssl_module
+  --with-stream_ssl_module
+  --with-stream_ssl_preread_module
 )
 
 # === Первая сборка (Release) ===
 log "Конфигурация сборки (Release)"
 auto/configure "${configure_args[@]}" \
-  --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -pipe'
+  --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -pipe' \
+  --with-openssl-opt='-DFD_SETSIZE=32768 enable-ec_nistp_64_gcc_128 enable-camellia no-weak-ssl-ciphers no-ssl3 no-ssl3-method no-comp no-rc4 no-rc5 no-idea no-mdc2 no-seed no-shared no-tests -D_WIN32_WINNT=0x0601'
 
 log "Сборка nginx (Release)"
 make -j"$(nproc)"
@@ -167,5 +181,15 @@ mv -f /d/a/nginx/nginx/nginx/objs/nginx.exe "${RELEASE_DIR}/nginx.exe"
 
 # Экспорт версии для последующих шагов (напр. упаковки)
 echo "NGINX_VERSION=${version}" > "${RELEASE_DIR}/.env"
+
+# === Сборка с отладкой (Debug) ===
+log "Сборка с отладкой (Debug)"
+configure_args+=(--with-debug)
+auto/configure "${configure_args[@]}" \
+  --with-cc-opt='-DFD_SETSIZE=32768 -O2 -fno-omit-frame-pointer -fno-strict-aliasing -pipe' \
+  --with-openssl-opt='-DFD_SETSIZE=32768 no-shared no-tests -D_WIN32_WINNT=0x0601'
+
+make -j"$(nproc)"
+mv -f /d/a/nginx/nginx/nginx/objs/nginx.exe "${RELEASE_DIR}/nginx-debug.exe"
 
 cd "${REPO_ROOT}"
