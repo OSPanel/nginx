@@ -73,6 +73,9 @@ jobs:
             mingw-w64-x86_64-geoip
             mingw-w64-x86_64-libmaxminddb
 
+      - name: Install Rust (cargo) for nginx-acme
+        uses: dtolnay/rust-toolchain@stable
+        
       - name: Prepare Git identity (anonymous)
         run: |
           NAME="${{ github.actor }}"
