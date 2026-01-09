@@ -49,7 +49,7 @@ mkdir -p "${DOCS_DIR}"
 git clone --branch master --depth=1 --recursive https://github.com/google/ngx_brotli.git nginx_brotli_module
 git clone --branch master --depth=1 --recursive https://github.com/aperezdc/ngx-fancyindex.git nginx_fancyindex
 git clone --branch master --depth=1 --recursive https://github.com/leev/ngx_http_geoip2_module.git nginx_http_geoip2_module
-git clone --branch master --depth=1 --recursive https://github.com/nginx/nginx-acme.git nginx_http_acme_module
+git clone --branch main --depth=1 --recursive https://github.com/nginx/nginx-acme.git nginx_http_acme_module
 
 # Патчим geoip2: заменяем во всех файлах нужную строку
 find nginx_http_geoip2_module -type f -exec sed -i \
