@@ -73,7 +73,7 @@ jobs:
             mingw-w64-x86_64-geoip
             mingw-w64-x86_64-libmaxminddb
             mingw-w64-x86_64-rust
-            mingw-w64-x86_64-cargo
+            mingw-w64-x86_64-cargo-c
 
       - name: Prepare Git identity (anonymous)
         run: |
