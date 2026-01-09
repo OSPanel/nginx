@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       TAG:
-        description: 'Enter nginx git tag/branch (e.g., 1.28.0, 1.28.1):'
+        description: 'Введите git tag/branch nginx (например: 1.28.0, 1.28.0):'
         required: false
         default: ''
         type: string
