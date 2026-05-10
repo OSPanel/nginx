@@ -46,20 +46,19 @@ mkdir -p "${RELEASE_DIR}"
 mkdir -p "${DOCS_DIR}"
 
 # === Клонируем последние версии master + сабмодули ===
-git clone --branch master --depth=1 --recursive https://github.com/google/ngx_brotli.git nginx_brotli_module
-git clone --branch master --depth=1 --recursive https://github.com/aperezdc/ngx-fancyindex.git nginx_fancyindex
-git clone --branch master --depth=1 --recursive https://github.com/leev/ngx_http_geoip2_module.git nginx_http_geoip2_module
-git clone --branch main --depth=1 --recursive https://github.com/nginx/nginx-acme.git nginx_http_acme_module
+git clone --branch master --depth=1 --recursive _https://github.com/google/ngx_brotli.git nginx_brotli_module
+git clone --branch master --depth=1 --recursive _https://github.com/aperezdc/ngx-fancyindex.git nginx_fancyindex
+git clone --branch master --depth=1 --recursive _https://github.com/leev/ngx_http_geoip2_module.git nginx_http_geoip2_module
 
 # Патчим geoip2: заменяем во всех файлах нужную строку
 find nginx_http_geoip2_module -type f -exec sed -i \
     's/ngx_file_info(database->mmdb.filename/ngx_file_info((u_char *) database->mmdb.filename/g' {} +
 
 # === Получение версий зависимостей ===
-ZLIB="$(fetch_latest_version 'https://zlib.net/' 'zlib-(\d+\.)+\d+' 'zlib-1.3.1')"
-PCRE="$(fetch_latest_version 'https://sourceforge.net/projects/pcre/rss?path=/pcre/' 'pcre-(\d+\.)+\d+' 'pcre-8.45')"
-PCRE2="$(fetch_latest_version 'https://api.github.com/repos/PhilipHazel/pcre2/releases/latest' 'pcre2-(\d+\.)+\d+' 'pcre2-10.45')"
-OPENSSL="$(fetch_latest_version 'https://openssl-library.org/source/' 'openssl-3\.5\.\d+' 'openssl-3.5.2')"
+ZLIB="$(fetch_latest_version '_https://zlib.net/' 'zlib-(\d+\.)+\d+' 'zlib-1.3.1')"
+PCRE="$(fetch_latest_version '_https://sourceforge.net/projects/pcre/rss?path=/pcre/' 'pcre-(\d+\.)+\d+' 'pcre-8.45')"
+PCRE2="$(fetch_latest_version '_https://api.github.com/repos/PhilipHazel/pcre2/releases/latest' 'pcre2-(\d+\.)+\d+' 'pcre2-10.45')"
+OPENSSL="$(fetch_latest_version '_https://openssl-library.org/source/' 'openssl-3\.5\.\d+' 'openssl-3.5.2')"
 
 log "Zlib: $ZLIB"
 log "PCRE: $PCRE"
@@ -85,24 +84,30 @@ mkdir -p docs
 git am -3 ../*.patch || true
 
 # === Загрузка зависимостей ===
-download_and_extract "https://zlib.net/${ZLIB}.tar.xz" || \
+download_and_extract "_https://zlib.net/${ZLIB}.tar.xz" || \
 download_and_extract "_http://prdownloads.sourceforge.net/libpng/${ZLIB}.tar.xz"
 
 WITH_PCRE="$PCRE"
 if grep -q PCRE2_STATIC ./auto/lib/pcre/conf; then
   log "Используется PCRE2"
   WITH_PCRE="$PCRE2"
-  download_and_extract "https://github.com/PhilipHazel/pcre2/releases/download/${PCRE2}/${PCRE2}.tar.bz2"
+  download_and_extract "_https://github.com/PhilipHazel/pcre2/releases/download/${PCRE2}/${PCRE2}.tar.bz2"
 else
-  download_and_extract "https://download.sourceforge.net/project/pcre/pcre/$(echo $PCRE | sed 's/pcre-//')/${PCRE}.tar.bz2"
+  download_and_extract "_https://download.sourceforge.net/project/pcre/pcre/$(echo $PCRE | sed 's/pcre-//')/${PCRE}.tar.bz2"
 fi
 
-download_and_extract "https://www.openssl.org/source/${OPENSSL}.tar.gz"
+download_and_extract "_https://www.openssl.org/source/${OPENSSL}.tar.gz"
 
 # Исправление openssl-1.1.1d (на всякий)
 if [[ "$OPENSSL" == "openssl-1.1.1d" ]]; then
   sed -i 's/return return 0;/return 0;/' openssl-1.1.1d/crypto/threads_none.c
 fi
+
+# === Установка путей OpenSSL для Rust/cargo (nginx-acme module) ===
+export OPENSSL_LIB_DIR="$(cygpath -m "$(pwd)/${OPENSSL}/.openssl/lib64")"
+export OPENSSL_INCLUDE_DIR="$(cygpath -m "$(pwd)/${OPENSSL}/.openssl/include")"
+log "OPENSSL_LIB_DIR=${OPENSSL_LIB_DIR}"
+log "OPENSSL_INCLUDE_DIR=${OPENSSL_INCLUDE_DIR}"
 
 # === Документация и лицензии ===
 make -f docs/GNUmakefile changes || true
@@ -154,7 +159,6 @@ configure_args=(
   --add-module=../nginx_brotli_module
   --add-module=../nginx_http_geoip2_module
   --add-module=../nginx_fancyindex
-  --add-module=../nginx_http_acme_module
   --with-ld-opt="-Wl,--gc-sections,--build-id=none"
   --prefix=
   --with-http_v2_module
@@ -171,40 +175,6 @@ auto/configure "${configure_args[@]}" \
   --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -pipe' \
   --with-openssl-opt='-DFD_SETSIZE=32768 enable-ec_nistp_64_gcc_128 enable-camellia no-weak-ssl-ciphers no-ssl3 no-ssl3-method no-comp no-rc4 no-rc5 no-idea no-mdc2 no-seed no-shared no-tests -D_WIN32_WINNT=0x0601'
 
-# === Pre-build всех C-зависимостей (fix race condition с Rust/bindgen) ===
-# При make -j$(nproc) Rust-крейты nginx-sys и openssl-sys запускаются ПАРАЛЛЕЛЬНО
-# с компиляцией OpenSSL/PCRE2/zlib и падают, не найдя заголовочных файлов.
-# Решение: собрать все зависимости ПОСЛЕДОВАТЕЛЬНО до полной сборки.
-
-log "Pre-building zlib"
-make -f objs/Makefile -j"$(nproc)" "${ZLIB}/libz.a"
-
-log "Pre-building PCRE2 (configure → pcre2.h, then build library)"
-# Шаг 1: Запускаем configure через nginx'овский Makefile (генерирует pcre2.h)
-if ! make -f objs/Makefile "${WITH_PCRE}/Makefile" 2>/dev/null; then
-  log "Target ${WITH_PCRE}/Makefile not found, configuring PCRE2 manually"
-  pushd "${WITH_PCRE}"
-  [ -f Makefile ] && make distclean || true
-  ./configure --disable-shared --enable-jit --enable-unicode
-  popd
-fi
-# Шаг 2: Собираем PCRE2 через его собственный Makefile
-make -C "${WITH_PCRE}" -j"$(nproc)"
-
-log "Pre-building OpenSSL (needed by openssl-sys + nginx-sys bindgen)"
-make -f objs/Makefile -j"$(nproc)" "${OPENSSL}/.openssl/include/openssl/ssl.h"
-
-# === Установка путей OpenSSL для Rust openssl-sys ===
-if [[ -d "${OPENSSL}/.openssl/lib64" ]]; then
-  export OPENSSL_LIB_DIR="$(cygpath -m "$(pwd)/${OPENSSL}/.openssl/lib64")"
-elif [[ -d "${OPENSSL}/.openssl/lib" ]]; then
-  export OPENSSL_LIB_DIR="$(cygpath -m "$(pwd)/${OPENSSL}/.openssl/lib")"
-fi
-export OPENSSL_INCLUDE_DIR="$(cygpath -m "$(pwd)/${OPENSSL}/.openssl/include")"
-log "OPENSSL_LIB_DIR=${OPENSSL_LIB_DIR}"
-log "OPENSSL_INCLUDE_DIR=${OPENSSL_INCLUDE_DIR}"
-
-# === Полная параллельная сборка nginx (Release) ===
 log "Сборка nginx (Release)"
 make -j"$(nproc)"
 strip -s objs/nginx.exe || true
@@ -222,13 +192,6 @@ configure_args+=(--with-debug)
 auto/configure "${configure_args[@]}" \
   --with-cc-opt='-DFD_SETSIZE=32768 -O2 -fno-omit-frame-pointer -fno-strict-aliasing -pipe' \
   --with-openssl-opt='-DFD_SETSIZE=32768 no-shared no-tests -D_WIN32_WINNT=0x0601'
-
-# Все C-зависимости уже собраны — touch чтобы make не пересобирал их заново
-# (новый objs/Makefile от auto/configure новее чем эти файлы)
-touch "${ZLIB}/libz.a"
-touch "${WITH_PCRE}/Makefile"
-find "${WITH_PCRE}" -name "libpcre2-8*" -exec touch {} + 2>/dev/null || true
-touch "${OPENSSL}/.openssl/include/openssl/ssl.h"
 
 make -j"$(nproc)"
 mv -f /d/a/nginx/nginx/nginx/objs/nginx.exe "${RELEASE_DIR}/nginx-debug.exe"
