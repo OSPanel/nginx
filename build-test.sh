@@ -46,20 +46,20 @@ mkdir -p "${RELEASE_DIR}"
 mkdir -p "${DOCS_DIR}"
 
 # === Клонируем последние версии master + сабмодули ===
-git clone --branch master --depth=1 --recursive _https://github.com/google/ngx_brotli.git nginx_brotli_module
-git clone --branch master --depth=1 --recursive _https://github.com/aperezdc/ngx-fancyindex.git nginx_fancyindex
-git clone --branch master --depth=1 --recursive _https://github.com/leev/ngx_http_geoip2_module.git nginx_http_geoip2_module
-git clone --branch main --depth=1 --recursive _https://github.com/nginx/nginx-acme.git nginx_http_acme_module
+git clone --branch master --depth=1 --recursive https://github.com/google/ngx_brotli.git nginx_brotli_module
+git clone --branch master --depth=1 --recursive https://github.com/aperezdc/ngx-fancyindex.git nginx_fancyindex
+git clone --branch master --depth=1 --recursive https://github.com/leev/ngx_http_geoip2_module.git nginx_http_geoip2_module
+git clone --branch main --depth=1 --recursive https://github.com/nginx/nginx-acme.git nginx_http_acme_module
 
 # Патчим geoip2: заменяем во всех файлах нужную строку
 find nginx_http_geoip2_module -type f -exec sed -i \
     's/ngx_file_info(database->mmdb.filename/ngx_file_info((u_char *) database->mmdb.filename/g' {} +
 
 # === Получение версий зависимостей ===
-ZLIB="$(fetch_latest_version '_https://zlib.net/' 'zlib-(\d+\.)+\d+' 'zlib-1.3.1')"
-PCRE="$(fetch_latest_version '_https://sourceforge.net/projects/pcre/rss?path=/pcre/' 'pcre-(\d+\.)+\d+' 'pcre-8.45')"
-PCRE2="$(fetch_latest_version '_https://api.github.com/repos/PhilipHazel/pcre2/releases/latest' 'pcre2-(\d+\.)+\d+' 'pcre2-10.45')"
-OPENSSL="$(fetch_latest_version '_https://openssl-library.org/source/' 'openssl-3\.5\.\d+' 'openssl-3.5.2')"
+ZLIB="$(fetch_latest_version 'https://zlib.net/' 'zlib-(\d+\.)+\d+' 'zlib-1.3.1')"
+PCRE="$(fetch_latest_version 'https://sourceforge.net/projects/pcre/rss?path=/pcre/' 'pcre-(\d+\.)+\d+' 'pcre-8.45')"
+PCRE2="$(fetch_latest_version 'https://api.github.com/repos/PhilipHazel/pcre2/releases/latest' 'pcre2-(\d+\.)+\d+' 'pcre2-10.45')"
+OPENSSL="$(fetch_latest_version 'https://openssl-library.org/source/' 'openssl-3\.5\.\d+' 'openssl-3.5.2')"
 
 log "Zlib: $ZLIB"
 log "PCRE: $PCRE"
@@ -85,19 +85,19 @@ mkdir -p docs
 git am -3 ../*.patch || true
 
 # === Загрузка зависимостей ===
-download_and_extract "_https://zlib.net/${ZLIB}.tar.xz" || \
-download_and_extract "_http://prdownloads.sourceforge.net/libpng/${ZLIB}.tar.xz"
+download_and_extract "https://zlib.net/${ZLIB}.tar.xz" || \
+download_and_extract "http://prdownloads.sourceforge.net/libpng/${ZLIB}.tar.xz"
 
 WITH_PCRE="$PCRE"
 if grep -q PCRE2_STATIC ./auto/lib/pcre/conf; then
   log "Используется PCRE2"
   WITH_PCRE="$PCRE2"
-  download_and_extract "_https://github.com/PhilipHazel/pcre2/releases/download/\({PCRE2}/\){PCRE2}.tar.bz2"
+  download_and_extract "https://github.com/PhilipHazel/pcre2/releases/download/\({PCRE2}/\){PCRE2}.tar.bz2"
 else
-  download_and_extract "_https://download.sourceforge.net/project/pcre/pcre/$(echo $PCRE | sed 's/pcre-//')/${PCRE}.tar.bz2"
+  download_and_extract "https://download.sourceforge.net/project/pcre/pcre/$(echo $PCRE | sed 's/pcre-//')/${PCRE}.tar.bz2"
 fi
 
-download_and_extract "_https://www.openssl.org/source/${OPENSSL}.tar.gz"
+download_and_extract "https://www.openssl.org/source/${OPENSSL}.tar.gz"
 
 # Исправление openssl-1.1.1d (на всякий)
 if [[ "$OPENSSL" == "openssl-1.1.1d" ]]; then
