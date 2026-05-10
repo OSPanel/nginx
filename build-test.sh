@@ -86,7 +86,7 @@ git am -3 ../*.patch || true
 
 # === Загрузка зависимостей ===
 download_and_extract "https://zlib.net/${ZLIB}.tar.xz" || \
-download_and_extract "http://prdownloads.sourceforge.net/libpng/${ZLIB}.tar.xz"
+download_and_extract "_http://prdownloads.sourceforge.net/libpng/${ZLIB}.tar.xz"
 
 WITH_PCRE="$PCRE"
 if grep -q PCRE2_STATIC ./auto/lib/pcre/conf; then
@@ -171,21 +171,33 @@ auto/configure "${configure_args[@]}" \
   --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -pipe' \
   --with-openssl-opt='-DFD_SETSIZE=32768 enable-ec_nistp_64_gcc_128 enable-camellia no-weak-ssl-ciphers no-ssl3 no-ssl3-method no-comp no-rc4 no-rc5 no-idea no-mdc2 no-seed no-shared no-tests -D_WIN32_WINNT=0x0601'
 
-# === Pre-build C dependencies (fix race condition with Rust/bindgen) ===
-# При make -j$(nproc) Rust-крейты nginx-sys и openssl-sys запускаются параллельно
-# с OpenSSL/PCRE2 и падают, не найдя заголовочных файлов (openssl/ssl.h, pcre2.h).
-# Решение: собрать эти зависимости ПЕРВЫМИ через те же targets из nginx Makefile.
+# === Pre-build всех C-зависимостей (fix race condition с Rust/bindgen) ===
+# При make -j$(nproc) Rust-крейты nginx-sys и openssl-sys запускаются ПАРАЛЛЕЛЬНО
+# с компиляцией OpenSSL/PCRE2/zlib и падают, не найдя заголовочных файлов.
+# Решение: собрать все зависимости ПОСЛЕДОВАТЕЛЬНО до полной сборки.
+
+log "Pre-building zlib"
+make -f objs/Makefile -j"$(nproc)" "${ZLIB}/libz.a"
+
+log "Pre-building PCRE2 (configure → pcre2.h, then build library)"
+# Шаг 1: Запускаем configure через nginx'овский Makefile (генерирует pcre2.h)
+if ! make -f objs/Makefile "${WITH_PCRE}/Makefile" 2>/dev/null; then
+  log "Target ${WITH_PCRE}/Makefile not found, configuring PCRE2 manually"
+  pushd "${WITH_PCRE}"
+  [ -f Makefile ] && make distclean || true
+  ./configure --disable-shared --enable-jit --enable-unicode
+  popd
+fi
+# Шаг 2: Собираем PCRE2 через его собственный Makefile
+make -C "${WITH_PCRE}" -j"$(nproc)"
 
 log "Pre-building OpenSSL (needed by openssl-sys + nginx-sys bindgen)"
 make -f objs/Makefile -j"$(nproc)" "${OPENSSL}/.openssl/include/openssl/ssl.h"
 
-log "Pre-building PCRE2 (needed by nginx-sys bindgen for pcre2.h)"
-make -f objs/Makefile -j"$(nproc)" "${WITH_PCRE}/src/.libs/libpcre2-8.a"
-
 # === Установка путей OpenSSL для Rust openssl-sys ===
 if [[ -d "${OPENSSL}/.openssl/lib64" ]]; then
   export OPENSSL_LIB_DIR="$(cygpath -m "$(pwd)/${OPENSSL}/.openssl/lib64")"
-else
+elif [[ -d "${OPENSSL}/.openssl/lib" ]]; then
   export OPENSSL_LIB_DIR="$(cygpath -m "$(pwd)/${OPENSSL}/.openssl/lib")"
 fi
 export OPENSSL_INCLUDE_DIR="$(cygpath -m "$(pwd)/${OPENSSL}/.openssl/include")"
@@ -211,10 +223,12 @@ auto/configure "${configure_args[@]}" \
   --with-cc-opt='-DFD_SETSIZE=32768 -O2 -fno-omit-frame-pointer -fno-strict-aliasing -pipe' \
   --with-openssl-opt='-DFD_SETSIZE=32768 no-shared no-tests -D_WIN32_WINNT=0x0601'
 
-# OpenSSL и PCRE2 уже собраны — touch чтобы make не пересобирал их заново
+# Все C-зависимости уже собраны — touch чтобы make не пересобирал их заново
 # (новый objs/Makefile от auto/configure новее чем эти файлы)
+touch "${ZLIB}/libz.a"
+touch "${WITH_PCRE}/Makefile"
+find "${WITH_PCRE}" -name "libpcre2-8*" -exec touch {} + 2>/dev/null || true
 touch "${OPENSSL}/.openssl/include/openssl/ssl.h"
-touch "${WITH_PCRE}/src/.libs/libpcre2-8.a"
 
 make -j"$(nproc)"
 mv -f /d/a/nginx/nginx/nginx/objs/nginx.exe "${RELEASE_DIR}/nginx-debug.exe"
