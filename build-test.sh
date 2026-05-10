@@ -38,8 +38,8 @@ download_and_extract() {
 GIT_USER_NAME="$(git config --global user.name || echo "")"
 GIT_USER_EMAIL="$(git config --global user.email || echo "")"
 
-[[ -z "\(GIT_USER_NAME" ]] && git config --global user.name "\)BUILD_USER_NAME"
-[[ -z "\(GIT_USER_EMAIL" ]] && git config --global user.email "\)BUILD_USER_EMAIL"
+[[ -z "$GIT_USER_NAME" ]] && git config --global user.name "$BUILD_USER_NAME"
+[[ -z "$GIT_USER_EMAIL" ]] && git config --global user.email "$BUILD_USER_EMAIL"
 
 # === Каталоги ===
 mkdir -p "${RELEASE_DIR}"
@@ -92,7 +92,7 @@ WITH_PCRE="$PCRE"
 if grep -q PCRE2_STATIC ./auto/lib/pcre/conf; then
   log "Используется PCRE2"
   WITH_PCRE="$PCRE2"
-  download_and_extract "https://github.com/PhilipHazel/pcre2/releases/download/\({PCRE2}/\){PCRE2}.tar.bz2"
+  download_and_extract "https://github.com/PhilipHazel/pcre2/releases/download/${PCRE2}/${PCRE2}.tar.bz2"
 else
   download_and_extract "https://download.sourceforge.net/project/pcre/pcre/$(echo $PCRE | sed 's/pcre-//')/${PCRE}.tar.bz2"
 fi
@@ -109,11 +109,11 @@ make -f docs/GNUmakefile changes || true
 mv -f tmp/*/CHANGES* "${DOCS_DIR}/" || true
 
 cp -f LICENSE README.md "${DOCS_DIR}/" || true
-cp -pf "\({OPENSSL}/LICENSE.txt" "\){DOCS_DIR}/OpenSSL.LICENSE.txt" || true
-cp -pf "\({WITH_PCRE}/LICENCE"* "\){DOCS_DIR}/PCRE.LICENCE" || true
+cp -pf "${OPENSSL}/LICENSE.txt" "${DOCS_DIR}/OpenSSL.LICENSE.txt" || true
+cp -pf "${WITH_PCRE}/LICENCE"* "${DOCS_DIR}/PCRE.LICENCE" || true
 if [[ -f "${ZLIB}/README" ]]; then
-  sed -ne '/^ (C) 1995-20/,/^  jloup@gzip\.org/p' "\({ZLIB}/README" > "\){DOCS_DIR}/zlib.LICENSE" || true
-  touch -r "\({ZLIB}/README" "\){DOCS_DIR}/zlib.LICENSE" || true
+  sed -ne '/^ (C) 1995-20/,/^  jloup@gzip\.org/p' "${ZLIB}/README" > "${DOCS_DIR}/zlib.LICENSE" || true
+  touch -r "${ZLIB}/README" "${DOCS_DIR}/zlib.LICENSE" || true
 fi
 
 # === Конфигурация сборки ===
@@ -171,22 +171,16 @@ auto/configure "${configure_args[@]}" \
   --with-cc-opt='-DFD_SETSIZE=32768 -s -O2 -fno-strict-aliasing -pipe' \
   --with-openssl-opt='-DFD_SETSIZE=32768 enable-ec_nistp_64_gcc_128 enable-camellia no-weak-ssl-ciphers no-ssl3 no-ssl3-method no-comp no-rc4 no-rc5 no-idea no-mdc2 no-seed no-shared no-tests -D_WIN32_WINNT=0x0601'
 
-# === Pre-build всех C-зависимостей (fix race condition с Rust/bindgen) ===
-# При make -j$(nproc) Rust-крейты nginx-sys и openssl-sys запускаются ПАРАЛЛЕЛЬНО
-# с компиляцией OpenSSL/PCRE2/zlib и падают, не найдя заголовочных файлов:
-#   - openssl/ssl.h (генерируется при install_sw OpenSSL)
-#   - pcre2.h (генерируется из pcre2.h.in при configure PCRE2)
-#   - zlib.h (есть в исходниках, но libz.a нужна для линковки)
-# Решение: собрать все зависимости ПОСЛЕДОВАТЕЛЬНО через targets из nginx Makefile.
-
-log "Pre-building zlib"
-make -f objs/Makefile -j"$(nproc)" "${ZLIB}/libz.a"
-
-log "Pre-building PCRE2 (needed by nginx-sys bindgen for pcre2.h)"
-make -f objs/Makefile -j"$(nproc)" "${WITH_PCRE}/src/.libs/libpcre2-8.a"
+# === Pre-build C dependencies (fix race condition with Rust/bindgen) ===
+# При make -j$(nproc) Rust-крейты nginx-sys и openssl-sys запускаются параллельно
+# с OpenSSL/PCRE2 и падают, не найдя заголовочных файлов (openssl/ssl.h, pcre2.h).
+# Решение: собрать эти зависимости ПЕРВЫМИ через те же targets из nginx Makefile.
 
 log "Pre-building OpenSSL (needed by openssl-sys + nginx-sys bindgen)"
 make -f objs/Makefile -j"$(nproc)" "${OPENSSL}/.openssl/include/openssl/ssl.h"
+
+log "Pre-building PCRE2 (needed by nginx-sys bindgen for pcre2.h)"
+make -f objs/Makefile -j"$(nproc)" "${WITH_PCRE}/src/.libs/libpcre2-8.a"
 
 # === Установка путей OpenSSL для Rust openssl-sys ===
 if [[ -d "${OPENSSL}/.openssl/lib64" ]]; then
@@ -208,7 +202,7 @@ machine_str="$(gcc -dumpmachine | cut -d'-' -f1)"
 mv -f /d/a/nginx/nginx/nginx/objs/nginx.exe "${RELEASE_DIR}/nginx.exe"
 
 # Экспорт версии для последующих шагов (напр. упаковки)
-echo "NGINX_VERSION=\({version}" > "\){RELEASE_DIR}/.env"
+echo "NGINX_VERSION=${version}" > "${RELEASE_DIR}/.env"
 
 # === Сборка с отладкой (Debug) ===
 log "Сборка с отладкой (Debug)"
@@ -217,11 +211,10 @@ auto/configure "${configure_args[@]}" \
   --with-cc-opt='-DFD_SETSIZE=32768 -O2 -fno-omit-frame-pointer -fno-strict-aliasing -pipe' \
   --with-openssl-opt='-DFD_SETSIZE=32768 no-shared no-tests -D_WIN32_WINNT=0x0601'
 
-# Все C-зависимости уже собраны — touch чтобы make не пересобирал их заново
+# OpenSSL и PCRE2 уже собраны — touch чтобы make не пересобирал их заново
 # (новый objs/Makefile от auto/configure новее чем эти файлы)
-touch "${ZLIB}/libz.a"
-touch "${WITH_PCRE}/src/.libs/libpcre2-8.a"
 touch "${OPENSSL}/.openssl/include/openssl/ssl.h"
+touch "${WITH_PCRE}/src/.libs/libpcre2-8.a"
 
 make -j"$(nproc)"
 mv -f /d/a/nginx/nginx/nginx/objs/nginx.exe "${RELEASE_DIR}/nginx-debug.exe"
