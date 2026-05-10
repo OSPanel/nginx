@@ -75,12 +75,6 @@ jobs:
             mingw-w64-x86_64-rust
             mingw-w64-x86_64-cargo-c
 
-      - name: Find GCC include path
-        shell: bash
-        run: |
-          GCC_VER=$(gcc -dumpversion)
-          echo "BINDGEN_EXTRA_CLANG_ARGS=-ID:/a/_temp/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/${GCC_VER}/include" >> $GITHUB_ENV
-
       - name: Prepare Git identity (anonymous)
         run: |
           NAME="${{ github.actor }}"
